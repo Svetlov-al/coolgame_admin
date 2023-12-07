@@ -1,0 +1,199 @@
+# Test your FastAPI endpoints
+
+POST http://127.0.0.1:8000/games/
+Accept: application/json
+Content-Type: application/json
+
+{
+  "account_number": 1,
+  "gameName": "God of War",
+  "transactionNumber": "123456789",
+  "price": 59.99,
+  "purchaseDate": "2017-03-03",
+  "lastDeactivationDate": "2017-03-03",
+  "additionalInfo": "Mastercard",
+  "comment": "Simple comment"
+}
+
+
+### Test get all games endpoint
+GET http://127.0.0.1:8000/games/
+Accept: application/json
+Content-Type: application/json
+
+#### Test get game endpoint
+
+GET http://127.0.0.1:8000/games/find_game?gamename=god
+Accept: application/json
+Content-Type: application/json
+
+
+#### Test get game endpoint_by_id
+GET http://127.0.0.1:8000/games/656e2dc401dbeba57f836cf7
+Accept: application/json
+Content-Type: application/json
+
+#### Test update game endpoint
+PUT http://127.0.0.1:8000/games/656e2dc401dbeba57f836cf7
+Accept: application/json
+Content-Type: application/json
+
+{
+  "gameName": "Hollow Knight",
+  "comment": "Add, Several comments"
+}
+
+
+###Test update sale status
+PUT http://127.0.0.1:8000/games/656e2dc401dbeba57f836cf7/sale-status
+Accept: application/json
+Content-Type: application/json
+
+{
+  "saleStatus": "Прездаказ"
+}
+
+
+#### Test delete game endpoint
+DELETE http://127.0.0.1:8000/games/656e249c8d7e853ac4b76c04
+Accept: application/json
+Content-Type: application/json
+
+
+### Test get codes to game endpoint
+GET http://127.0.0.1:8000/codes/656e2dc401dbeba57f836cf7
+Accept: application/json
+Content-Type: application/json
+
+
+### Test add codes to game endpoint
+PUT http://localhost:8000/codes/656e2dc401dbeba57f836cf7
+Accept: application/json
+Content-Type: application/json
+
+{"codes": ["421","123","321"]}
+
+
+### Test delete code by index
+DELETE http://127.0.0.1:8000/codes/656e2dc401dbeba57f836cf7/1
+Accept: application/json
+Content-Type: application/json
+
+### Test add client info in activations
+POST http://127.0.0.1:8000/activation/656e2dc401dbeba57f836cf7/?activation_type=ps5ActivationP3
+Accept: application/json
+Content-Type: application/json
+
+{
+    "name": "Evgeniy",
+    "email": "yahoo.com",
+    "vkLink": "vk.ru",
+    "tgLink": "444444"
+}
+
+###Test get client info in activations
+GET http://127.0.0.1:8000/activation/656e2dc401dbeba57f836cf7
+Accept: application/json
+Content-Type: application/json
+
+###Test update info in activations
+PUT http://127.0.0.1:8000/activation/656e2dc401dbeba57f836cf7/ps5ActivationP3/0
+Accept: application/json
+Content-Type: application/json
+
+{
+  "tgLink": "3333333",
+  "vkLink": "vk.ru"
+}
+
+###Test delete client info in activations
+DELETE http://127.0.0.1:8000/activation/656e2dc401dbeba57f836cf7/ps5ActivationP3/2
+Accept: application/json
+Content-Type: application/json
+
+###Test rental info status
+GET http://127.0.0.1:8000/rentalinfo/656e2dc401dbeba57f836cf7
+Accept: application/json
+Content-Type: application/json
+
+###Test update rental status info
+PUT http://127.0.0.1:8000/rentalinfo/656e2dc401dbeba57f836cf7
+Accept: application/json
+Content-Type: application/json
+
+{
+  "isRented": "НЕТ",
+  "rentalPrice": 50.0,
+  "rentalDate": "2017-03-03"
+}
+
+###Test get email account
+GET http://127.0.0.1:8000/emailaccount/656e2dc401dbeba57f836cf7
+Accept: application/json
+Content-Type: application/json
+
+###Test add email account
+POST http://127.0.0.1:8000/emailaccount/656e2dc401dbeba57f836cf7
+Accept: application/json
+Content-Type: application/json
+
+{
+    "email": "set1qs@yandex.ru",
+    "password": "password",
+    "birthDate": "10.07.1990",
+    "secretQuestionAnswer": "answer"
+}
+
+###Test update email account info
+PUT http://127.0.0.1:8000/emailaccount/656e2dc401dbeba57f836cf7
+Accept: application/json
+Content-Type: application/json
+
+{
+    "email": "set1qs@rambler.ru"
+}
+
+###Delete email account
+DELETE http://127.0.0.1:8000/emailaccount/656e2dc401dbeba57f836cf7
+Accept: application/json
+Content-Type: application/json
+
+
+
+
+###Test get psn account
+GET http://127.0.0.1:8000/psnaccount/656e2dc401dbeba57f836cf7
+Accept: application/json
+Content-Type: application/json
+
+###Test add psn account
+POST http://127.0.0.1:8000/psnaccount/656e2dc401dbeba57f836cf7
+Accept: application/json
+Content-Type: application/json
+
+{
+    "name": "set1qs@yandex.ru",
+    "password": "password",
+    "address": "tamar mepe",
+    "birthDate": "10.07.1990",
+    "networkID": "123",
+    "phoneNumbers": ["123456789"],
+    "paymentMethod": "Mastercard",
+    "secretQuestionAnswer": "question"
+}
+
+
+###Test update psn account info
+PUT http://127.0.0.1:8000/psnaccount/656e2dc401dbeba57f836cf7
+Accept: application/json
+Content-Type: application/json
+
+{
+    "name": "s3t1qs@gmail.com",
+    "networkID": "88888"
+}
+
+###Delete psn account
+DELETE http://127.0.0.1:8000/psnaccount/656e2dc401dbeba57f836cf7
+Accept: application/json
+Content-Type: application/json

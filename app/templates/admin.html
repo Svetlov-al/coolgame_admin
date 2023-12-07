@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Подключение Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <title>Игры</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
+
+    <style>
+        .custom-container {
+            margin: 0 auto;
+            max-width: 100%; /* Можно настроить в соответствии с вашими предпочтениями */
+            padding: 0 15px; /* Отступы по бокам */
+            background-color: #fff;
+        }
+        body {
+            background-color: #fff;
+        }
+        .game-link {
+            color: cadetblue;
+            text-decoration: none;
+        }
+
+        .game-link:hover {
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        /* Пример стилизации крестика "Закрыть" модального окна */
+        /* Стилизация кнопки закрытия модального окна */
+        .close-button {
+            color: red; /* Цвет кнопки */
+            font-size: 24px; /* Размер шрифта */
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .close-button:focus {
+            outline: none; /* Убираем рамку при фокусировке */
+        }
+
+        #notification {
+            position: fixed;
+            z-index: 1060;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: black; /* Красный цвет фона */
+            color: white; /* Белый текст */
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Тень для улучшения видимости */
+            font-weight: bold;
+            display: none;
+        }
+
+        .custom-modal-dialog {
+            max-width: 15%; /* Принудительно уменьшаем ширину */
+        }
+
+
+        .custom-modal-dialog .modal-content {
+            margin-top: 100px; /* Дополнительный верхний отступ */
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Модальное окно для кодов активации -->
+    <div class="modal fade" id="activationCodesModal" tabindex="-1" aria-labelledby="activationCodesModalLabel" aria-hidden="true">
+        <div class="modal-dialog custom-modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="activationCodesModalLabel">Коды активации</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Место для зарезервированных кодов -->
+                    <div id="activationCodesContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Модальное окно для обновления кодов активации -->
+    <div class="modal fade" id="updateCodesModal" tabindex="-1" aria-labelledby="updateCodesModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateCodesModalLabel">Обновление кодов активации</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <textarea id="newActivationCodes" class="form-control" rows="5" placeholder="Введите новые коды здесь..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    <button type="button" class="btn btn-primary" onclick="updateCodes('${game._id}')">Обновить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для отображения и редактирования информации PSN аккаунта -->
+    <div id="psnModal" class="modal fade" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Редактирование PSN аккаунта</h5>
+            <button type="button" class="close close-button" data-bs-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+
+          </div>
+          <div class="modal-body">
+            <form id="psnForm" onsubmit="submitPsnForm(event, '${psnAccountId}')">
+                <input type="hidden" id="gameIdField" name="gameId">
+              <div class="form-group">
+                <label for="psnName">Имя</label>
+                <input type="text" class="form-control" id="psnName" name="name">
+              </div>
+              <div class="form-group">
+                <label for="psnPassword">Пароль</label>
+                <input type="text" class="form-control" id="psnPassword" name="password">
+              </div>
+              <div class="form-group">
+                <label for="psnAddress">Адрес</label>
+                <input type="text" class="form-control" id="psnAddress" name="address">
+              </div>
+              <div class="form-group">
+                <label for="psnBirthDate">Дата рождения</label>
+                <input type="date" class="form-control" id="psnBirthDate" name="birthDate">
+              </div>
+              <div class="form-group">
+                <label for="psnNetworkID">Network ID</label>
+                <input type="text" class="form-control" id="psnNetworkID" name="networkID">
+              </div>
+              <div class="form-group">
+                <label for="psnPhoneNumbers">Телефонные номера</label>
+                <input type="text" class="form-control" id="psnPhoneNumbers" name="phoneNumbers">
+              </div>
+              <div class="form-group">
+                <label for="psnPaymentMethod">Способ оплаты</label>
+                <input type="text" class="form-control" id="psnPaymentMethod" name="paymentMethod">
+              </div>
+              <div class="form-group">
+                <label for="psnSecretQuestionAnswer">Ответ на секретный вопрос</label>
+                <input type="text" class="form-control" id="psnSecretQuestionAnswer" name="secretQuestionAnswer">
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            <button type="submit" class="btn btn-primary" form="psnForm">Сохранить изменения</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="gameEditModal" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Редактирование игры</h5>
+        <button type="button" class="close close-button" data-bs-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+
+      </div>
+      <div class="modal-body">
+        <form id="gameEditForm">
+          <input type="hidden" id="editGameIdField" name="gameId">
+          <div class="form-group">
+            <label for="editGameName">Название игры</label>
+            <input type="text" class="form-control" id="editGameName" name="gameName">
+          </div>
+          <div class="form-group">
+                <label for="editGamePlatform">Платформа</label>
+                <select class="form-control" id="editGamePlatform" name="platform">
+                    <option value="PS4">PS4</option>
+                    <option value="PS5">PS5</option>
+                </select>
+            </div>
+          <div class="form-group">
+            <label for="editGamePurchaseDate">Дата покупки</label>
+            <input type="date" class="form-control" id="editGamePurchaseDate" name="purchaseDate">
+          </div>
+          <!-- Другие поля по необходимости -->
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+        <button type="submit" class="btn btn-primary" form="gameEditForm">Сохранить изменения</button>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="custom-container">
+        <h1 class="text-center my-4">База данных по играм</h1>
+
+        <!-- Форма поиска игры -->
+        <div class="mb-4">
+            <input type="text" id="searchGameName" class="form-control" placeholder="Поиск по названию игры">
+            <button onclick="findGame()" class="btn btn-primary mt-2">Найти игру</button>
+        </div>
+
+        <!-- Кнопка добавить новую игру -->
+        <button onclick="addGameForm()" class="btn btn-success mb-4">Добавить запись</button>
+
+        <!-- Список игр -->
+            <div id="gamesList" class="mt-4">
+                <div id="notification" class="notification"></div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Номер аккаунта</th>
+                            <th scope="col">Название</th>
+                            <th scope="col">Платформа</th>
+                            <th scope="col">Дата покупки</th>
+                            <th scope="col">Аккаунт PSN</th>
+                            <th scope="col">Коды активации</th>
+                            <th scope="col">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Записи игр будут добавлены здесь -->
+                    </tbody>
+                </table>
+            </div>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.5/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadGames(); // Загрузка игр при инициализации страницы
+});
+    var gamesData = {}; // Глобальный объект для хранения данных игр
+
+    async function loadGames(skip = 0, limit = 10) {
+    try {
+        const response = await fetch(`/games/?skip=${skip}&limit=${limit}`);
+        if (!response.ok) {
+            throw new Error('Ошибка при получении списка игр');
+        }
+
+    const games = await response.json();
+    games.forEach(game => {
+        gamesData[game._id] = game;
+        displayGames(games); // Отображение списка игр
+        });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            alert('Не удалось загрузить список игр');
+        }
+    }
+
+    async function findGame() {
+    const searchGameName = document.getElementById('searchGameName').value;
+
+    try {
+        const response = await fetch(`/games/find_game?gamename=${encodeURIComponent(searchGameName)}`);
+        if (!response.ok) {
+            throw new Error('Game not found');
+        }
+
+        const game = await response.json();
+        displayGames([game]); // Показать найденную игру
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert('Игра не найдена');
+    }
+}
+
+    async function deleteGame(gameId) {
+    try {
+        const response = await fetch(`/games/${gameId}`, { method: 'DELETE' });
+        if (!response.ok) {
+            throw new Error('Failed to delete the game');
+        }
+        await loadGames(); // Перезагрузить список игр
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert('Ошибка удаления игры');
+    }
+}
+
+    function editGame(gameId) {
+    const game = gamesData[gameId];
+
+    // Заполнение формы данными игры
+    document.getElementById('editGameName').value = game.gameName;
+    document.getElementById('editGamePlatform').value = game.platform;
+    document.getElementById('editGamePurchaseDate').value = game.purchaseDate;
+
+    // Сохранение gameId в скрытом поле формы
+    document.getElementById('editGameIdField').value = gameId;
+
+    // Показ модального окна для редактирования
+    new bootstrap.Modal(document.getElementById('gameEditModal')).show();
+}
+
+    document.getElementById('gameEditForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const gameIdValue = document.getElementById('editGameIdField').value;
+    const updatedGame = {
+        gameName: document.getElementById('editGameName').value,
+        platform: document.getElementById('editGamePlatform').value,
+        purchaseDate: document.getElementById('editGamePurchaseDate').value
+    };
+
+    // Подготовка данных для PUT запроса
+    const requestData = { game: updatedGame };
+
+        // Отправка PUT запроса
+        try {
+            const response = await fetch(`/games/${gameIdValue}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            if (response.ok) {
+                $('#gameEditModal').modal('hide'); // Закрыть модальное окно
+                window.location.reload(); // Перезагрузить страницу
+            } else {
+                console.error('Ошибка при обновлении данных: ', response.statusText);
+            }
+        } catch (error) {
+            console.error('Ошибка при отправке запроса: ', error);
+        }
+    });
+
+    // Глобальный объект для хранения данных PSN аккаунтов
+    var psnAccountsData = {};
+
+    function displayGames(games) {
+    const gamesList = document.getElementById('gamesList').getElementsByTagName('tbody')[0];
+    gamesList.innerHTML = ''; // Очистка списка игр
+
+    games.forEach(game => {
+        const gameRow = document.createElement('tr');
+        gameRow.className = 'align-items-center';
+
+        // Создание выпадающего списка для кодов активации
+        let activationCodesButton = `<button class="btn btn-secondary" type="button" onclick="showActivationCodesModal('${game._id}')">Коды</button>`;
+
+        // Формируем строку для PSN аккаунта
+        const psnAccountId = `psn-${game._id}`;
+        const psnAccountName = game.transactions[0] && game.transactions[0].psnAccount
+            ? game.transactions[0].psnAccount.name
+            : '';
+
+        // Сохранение данных PSN аккаунта в глобальном объекте
+        psnAccountsData[psnAccountId] = game.transactions[0] ? game.transactions[0].psnAccount : null;
+
+        gameRow.innerHTML = `
+            <td>${game.account_number}</td>
+            <td><a href="#" class="game-link" onclick="editGame('${game._id}')">${game.gameName}</a></td>
+            <td>${game.platform}</td>
+            <td>${game.purchaseDate}</td>
+            <td><a href="#" class="game-link" onclick="showPsnModal('${psnAccountId}')">${psnAccountName}</a></td>
+            <td>${activationCodesButton}</td>
+            <td>
+                <button onclick="editGame('${game._id}')" class="btn btn-sm btn-outline-secondary ml-2"><i class="fas fa-edit"></i></button>
+                <button onclick="deleteGame('${game._id}')" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt"></i></button>
+            </td>
+        `;
+
+        gamesList.appendChild(gameRow);
+    });
+}
+
+    function showActivationCodesModal(gameId) {
+        const game = gamesData[gameId];
+
+        let activationCodesHtml = '';
+        if (game.transactions && game.transactions[0] && game.transactions[0].activationCodes && game.transactions[0].activationCodes.length > 0) {
+            game.transactions[0].activationCodes.forEach((code, index) => {
+                activationCodesHtml += `
+                    <div class="mb-2">
+                        * ${code}
+                        <button class="btn btn-sm" onclick="copyCodeToClipboard('${code}')">&#x1F4CB;</button>
+                        <button class="btn btn-sm" onclick="deleteCode('${game._id}', '${code}', ${index})">&#x1F5D1;</button>
+                    </div>`;
+            });
+        } else {
+            console.log('Коды активации не найдены');
+        }
+
+        // Кнопка "Обновить коды" теперь добавляется вне условного блока
+        activationCodesHtml += `<button type="button" class="btn btn-primary" onclick="showUpdateCodesModal('${game._id}')">Обновить коды</button>`;
+
+        document.getElementById('activationCodesContainer').innerHTML = activationCodesHtml;
+
+        const modal = new bootstrap.Modal(document.getElementById('activationCodesModal'));
+        modal.show();
+    }
+
+    function showUpdateCodesModal(gameId) {
+        document.getElementById('gameIdField').value = gameId;
+        const updateModal = new bootstrap.Modal(document.getElementById('updateCodesModal'));
+        updateModal.show();
+    }
+
+    function showNotification(message) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.style.display = 'block'; // Показываем уведомление
+
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 2000);
+    }
+
+    function copyCodeToClipboard(code, btnElement) {
+        navigator.clipboard.writeText(code).then(() => {
+        showNotification(`Код ${code} скопирован в буфер обмена`);
+    });}
+
+    function deleteCode(gameId, code, codeIndex) {
+        fetch(`/codes/${gameId}/${codeIndex}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (response.status === 204) {
+                // Если статус 204, то просто возвращаем true и не пытаемся парсить JSON
+                return true;
+            }
+            if (response.ok) {
+                // Если статус не 204, но запрос успешен, парсим JSON
+                return response.json();
+            }
+            throw new Error('Проблема при выполнении запроса');
+        })
+        .then(data => {
+            showNotification(`Код ${code} удален!`);
+            window.location.reload(); // Перезагрузить страницу
+        })
+        .catch(error => {
+            console.error('Ошибка при удалении кода:', error);
+            showNotification('Ошибка при удалении кода');
+        });
+    }
+
+    function showPsnModal(psnAccountId) {
+        const psnAccount = psnAccountsData[psnAccountId];
+
+        // Заполнение формы данными PSN аккаунта
+        document.getElementById('psnName').value = psnAccount.name;
+        document.getElementById('psnPassword').value = psnAccount.password;
+        document.getElementById('psnAddress').value = psnAccount.address;
+        document.getElementById('psnBirthDate').value = psnAccount.birthDate;
+        document.getElementById('psnNetworkID').value = psnAccount.networkID;
+        document.getElementById('psnPhoneNumbers').value = psnAccount.phoneNumbers.join(', ');
+        document.getElementById('psnPaymentMethod').value = psnAccount.paymentMethod;
+        document.getElementById('psnSecretQuestionAnswer').value = psnAccount.secretQuestionAnswer;
+
+        // Сохранение gameId в скрытом поле формы
+        document.getElementById('gameIdField').value = psnAccountId.split('-')[1];
+
+        const modal = new bootstrap.Modal(document.getElementById('psnModal'));
+        modal.show();
+}
+
+    async function submitPsnForm(event, gameId) {
+         event.preventDefault(); // Предотвращение стандартной отправки формы
+        // Получение gameId из скрытого поля
+        const gameIdValue = document.getElementById('gameIdField').value;
+          // Сбор данных из формы
+          const updatedPsnAccount = {
+            name: document.getElementById('psnName').value,
+            password: document.getElementById('psnPassword').value,
+            address: document.getElementById('psnAddress').value,
+            birthDate: document.getElementById('psnBirthDate').value,
+            networkID: document.getElementById('psnNetworkID').value,
+            phoneNumbers: [document.getElementById('psnPhoneNumbers').value],
+            paymentMethod: document.getElementById('psnPaymentMethod').value,
+            secretQuestionAnswer: document.getElementById('psnSecretQuestionAnswer').value
+          };
+
+          // Подготовка данных для PUT запроса
+          const requestData = {
+            transactions: [{
+              psnAccount: updatedPsnAccount
+            }]
+          };
+            console.log("Отправляемые данные:", requestData);
+          // Отправка PUT запроса
+              try {
+                const response = await fetch(`/games/${gameIdValue}`, {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(requestData)
+                });
+
+                if (response.ok) {
+                  console.log($('#psnModal'));
+                    $('#psnModal').modal('hide'); // Закрыть модальное окно
+                    window.location.reload(); // Перезагрузить страницу
+                } else {
+                  console.error('Ошибка при обновлении данных: ', response.statusText);
+                }
+              } catch (error) {
+                console.error('Ошибка при отправке запроса: ', error);
+              }
+            }
+
+    function updateCodes(gameId) {
+        var newCodes = document.getElementById('newActivationCodes').value;
+        gameId = document.getElementById('gameIdField').value;
+        var data = {
+            newActivationCodes: newCodes.split('\n') // предполагается, что коды разделены переносами строк
+        };
+
+        fetch(`/codes/${gameId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка сервера: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Success:', data);
+            // Закрытие обоих модальных окон после успешного обновления данных
+            $('#updateCodesModal').modal('hide');
+            $('#activationCodesModal').modal('hide');
+            window.location.reload(); // Перезагрузить страницу
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    }
+
+</script>
+<!-- Подключение Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+</body>
+</html>
