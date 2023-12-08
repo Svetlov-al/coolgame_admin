@@ -160,44 +160,273 @@
         </div>
       </div>
     </div>
-    <div id="gameEditModal" class="modal fade" tabindex="-1" role="dialog">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Редактирование игры</h5>
-        <button type="button" class="close close-button" data-bs-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
 
-      </div>
-      <div class="modal-body">
-        <form id="gameEditForm">
-          <input type="hidden" id="editGameIdField" name="gameId">
-          <div class="form-group">
-            <label for="editGameName">Название игры</label>
-            <input type="text" class="form-control" id="editGameName" name="gameName">
-          </div>
-          <div class="form-group">
-                <label for="editGamePlatform">Платформа</label>
-                <select class="form-control" id="editGamePlatform" name="platform">
-                    <option value="PS4">PS4</option>
-                    <option value="PS5">PS5</option>
-                </select>
+    <!-- Модальное окно для отображения и редактирования информации почтового аккаунта -->
+    <div id="emailModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактирование Email аккаунта</h5>
+                <button type="button" class="close close-button" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
-          <div class="form-group">
-            <label for="editGamePurchaseDate">Дата покупки</label>
-            <input type="date" class="form-control" id="editGamePurchaseDate" name="purchaseDate">
-          </div>
-          <!-- Другие поля по необходимости -->
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-        <button type="submit" class="btn btn-primary" form="gameEditForm">Сохранить изменения</button>
-      </div>
+            <div class="modal-body">
+                <form id="emailForm">
+                    <input type="hidden" id="emailAccountIdField" name="emailAccountId">
+                    <div class="form-group">
+                        <label for="emailAddress">Email</label>
+                        <input type="email" class="form-control" id="emailAddress" name="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="emailPassword">Пароль</label>
+                        <input type="text" class="form-control" id="emailPassword" name="password">
+                    </div>
+                    <div class="form-group">
+                        <label for="emailBirthDate">Дата рождения</label>
+                        <input type="date" class="form-control" id="emailBirthDate" name="birthDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="emailSecretQuestionAnswer">Ответ на секретный вопрос</label>
+                        <input type="text" class="form-control" id="emailSecretQuestionAnswer" name="secretQuestionAnswer">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="submit" class="btn btn-primary" form="emailForm">Сохранить изменения</button>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
+
+    <!-- Модальное окно для отображения информации об активациях -->
+    <div id="activationInfoModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Информация об активации</h5>
+                    <button type="button" class="close close-button" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="activationInfoContainer">
+                        <!-- Сюда будет вставляться информация об активациях -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для редактирования активации -->
+    <div id="editActivationModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактирование активации</h5>
+                <button type="button" class="close close-button" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editActivationForm">
+                    <!-- Имя -->
+                    <div class="form-group">
+                        <label for="editActivationName">Имя</label>
+                        <input type="text" class="form-control" id="editActivationName" name="name">
+                    </div>
+                    <!-- Email -->
+                    <div class="form-group">
+                        <label for="editActivationEmail">Email</label>
+                        <input type="email" class="form-control" id="editActivationEmail" name="email">
+                    </div>
+                    <!-- VK Link -->
+                    <div class="form-group">
+                        <label for="editActivationVkLink">Ссылка VK</label>
+                        <input type="text" class="form-control" id="editActivationVkLink" name="vkLink">
+                    </div>
+                    <!-- Telegram Link -->
+                    <div class="form-group">
+                        <label for="editActivationTgLink">Ссылка Telegram</label>
+                        <input type="text" class="form-control" id="editActivationTgLink" name="tgLink">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="submit" class="btn btn-primary" form="editActivationForm">Сохранить изменения</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Модальное окно для добавления новой игры -->
+    <div id="addGameModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить новую игру</h5>
+                <button type="button" class="close close-button" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addGameForm">
+                    <!-- Номер аккаунта -->
+                    <div class="form-group">
+                        <label for="addAccountNumber">Номер аккаунта</label>
+                        <input type="number" class="form-control" id="addAccountNumber" name="account_number">
+                    </div>
+                    <!-- Название игры -->
+                    <div class="form-group">
+                        <label for="addGameName">Название игры</label>
+                        <input type="text" class="form-control" id="addGameName" name="gameName">
+                    </div>
+                    <!-- Номер транзакции -->
+                    <div class="form-group">
+                        <label for="addTransactionNumber">Номер транзакции</label>
+                        <input type="text" class="form-control" id="addTransactionNumber" name="transactionNumber">
+                    </div>
+                    <!-- Цена -->
+                    <div class="form-group">
+                        <label for="addPrice">Цена</label>
+                        <input type="number" class="form-control" id="addPrice" name="price">
+                    </div>
+                    <!-- Дата покупки -->
+                    <div class="form-group">
+                        <label for="addPurchaseDate">Дата покупки</label>
+                        <input type="date" class="form-control" id="addPurchaseDate" name="purchaseDate">
+                    </div>
+                    <!-- Дата последней деактивации -->
+                    <div class="form-group">
+                        <label for="addLastDeactivationDate">Дата последней деактивации</label>
+                        <input type="date" class="form-control" id="addLastDeactivationDate" name="lastDeactivationDate">
+                    </div>
+                    <!-- Дополнительная информация -->
+                    <div class="form-group">
+                        <label for="addAdditionalInfo">Дополнительная информация</label>
+                        <input type="text" class="form-control" id="addAdditionalInfo" name="additionalInfo">
+                    </div>
+                    <!-- Комментарий -->
+                    <div class="form-group">
+                        <label for="addComment">Комментарий</label>
+                        <textarea class="form-control" id="addComment" name="comment"></textarea>
+                    </div>
+                    <!-- Статус продажи -->
+                    <div class="form-group">
+                        <label for="addSaleStatus">Статус продажи</label>
+                        <select class="form-control" id="addSaleStatus" name="saleStatus">
+                            <option value="FOR_SALE">В продаже</option>
+                            <option value="SOLD">Продано</option>
+                            <option value="PREORDER">Прездаказ</option>
+                            <option value="FOR_SALE_PS5">В продаже PS5</option>
+                            <option value="FOR_SALE_PS4">В продаже PS4</option>
+                            <option value="PUSH_TO_SALE">! На продажу</option>
+                            <option value="FOR_SALE_P1">В продаже П1</option>
+                            <option value="BLOCKED">Заблокирован</option>
+                            <option value="RECOVER">Восстановить</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="submit" class="btn btn-primary" form="addGameForm" onclick="submitAddGameForm(event)">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Окно для редактирования игры -->
+    <div id="gameEditModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <!-- Заголовок и кнопка закрытия -->
+            <div class="modal-header">
+                <h5 class="modal-title">Редактирование игры</h5>
+                <button type="button" class="close close-button" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <!-- Тело модального окна -->
+            <div class="modal-body">
+                <form id="gameEditForm">
+                    <input type="hidden" id="editGameIdField" name="gameId">
+                    <!-- Название игры -->
+                    <div class="form-group">
+                        <label for="editGameName">Название игры</label>
+                        <input type="text" class="form-control" id="editGameName" name="gameName">
+                    </div>
+                    <!-- Номер транзакции -->
+                    <div class="form-group">
+                        <label for="editTransactionNumber">Номер транзакции</label>
+                        <input type="text" class="form-control" id="editTransactionNumber" name="transactionNumber">
+                    </div>
+                    <!-- Цена -->
+                    <div class="form-group">
+                        <label for="editPrice">Цена</label>
+                        <input type="number" class="form-control" id="editPrice" name="price">
+                    </div>
+                    <!-- Дата покупки -->
+                    <div class="form-group">
+                        <label for="editGamePurchaseDate">Дата покупки</label>
+                        <input type="date" class="form-control" id="editGamePurchaseDate" name="purchaseDate">
+                    </div>
+                    <!-- Дата последней деактивации -->
+                    <div class="form-group">
+                        <label for="editLastDeactivationDate">Дата последней деактивации</label>
+                        <input type="date" class="form-control" id="editLastDeactivationDate" name="lastDeactivationDate">
+                    </div>
+                    <!-- Дополнительная информация -->
+                    <div class="form-group">
+                        <label for="editAdditionalInfo">Дополнительная информация</label>
+                        <input type="text" class="form-control" id="editAdditionalInfo" name="additionalInfo">
+                    </div>
+                    <!-- Комментарий -->
+                    <div class="form-group">
+                        <label for="editComment">Комментарий</label>
+                        <textarea class="form-control" id="editComment" name="comment"></textarea>
+                    </div>
+                    <!-- Статус продажи -->
+                    <div class="form-group">
+                        <label for="editSaleStatus">Статус продажи</label>
+                        <select class="form-control" id="editSaleStatus" name="saleStatus">
+                            <option value="FOR_SALE">В продаже</option>
+                            <option value="SOLD">Продано</option>
+                            <option value="PREORDER">Прездаказ</option>
+                            <option value="FOR_SALE_PS5">В продаже PS5</option>
+                            <option value="FOR_SALE_PS4">В продаже PS4</option>
+                            <option value="PUSH_TO_SALE">! На продажу</option>
+                            <option value="FOR_SALE_P1">В продаже П1</option>
+                            <option value="BLOCKED">Заблокирован</option>
+                            <option value="RECOVER">Восстановить</option>
+                        </select>
+                    </div>
+                    <!-- Статус аренды -->
+                    <div class="form-group">
+                        <label for="editRentalStatus">Статус аренды</label>
+                        <select class="form-control" id="editRentalStatus" name="rentalStatus">
+                            <option value="AVAILABLE">ДА</option>
+                            <option value="NOT_AVAILIABLE">НЕТ</option>
+                        </select>
+                    </div>
+                    <!-- Другие поля по необходимости -->
+                </form>
+            </div>
+            <!-- Футер модального окна -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="submit" class="btn btn-primary" form="gameEditForm">Сохранить изменения</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Основной контейнер -->
     <div class="custom-container">
         <h1 class="text-center my-4">База данных по играм</h1>
 
@@ -218,9 +447,10 @@
                         <tr>
                             <th scope="col">Номер аккаунта</th>
                             <th scope="col">Название</th>
-                            <th scope="col">Платформа</th>
                             <th scope="col">Дата покупки</th>
                             <th scope="col">Аккаунт PSN</th>
+                            <th scope="col">Email Аккаунт</th>
+                            <th scope="col">Информация активаций</th>
                             <th scope="col">Коды активации</th>
                             <th scope="col">Действия</th>
                         </tr>
@@ -244,22 +474,64 @@
     var gamesData = {}; // Глобальный объект для хранения данных игр
 
     async function loadGames(skip = 0, limit = 10) {
-    try {
-        const response = await fetch(`/games/?skip=${skip}&limit=${limit}`);
-        if (!response.ok) {
-            throw new Error('Ошибка при получении списка игр');
-        }
+        try {
+            const response = await fetch(`/games/?skip=${skip}&limit=${limit}`);
+            if (!response.ok) {
+                throw new Error('Ошибка при получении списка игр');
+            }
 
-    const games = await response.json();
-    games.forEach(game => {
-        gamesData[game._id] = game;
-        displayGames(games); // Отображение списка игр
-        });
+            const games = await response.json();
+            games.forEach(game => {
+                gamesData[game._id] = game; // Обновление глобального объекта gamesData
+            });
+            displayGames(games); // Отображение списка игр
         } catch (error) {
             console.error('Ошибка:', error);
             alert('Не удалось загрузить список игр');
         }
-    }
+}
+
+    function displayGames(games) {
+        const gamesList = document.getElementById('gamesList').getElementsByTagName('tbody')[0];
+        gamesList.innerHTML = ''; // Очистка списка игр
+
+        games.forEach(game => {
+            const gameRow = document.createElement('tr');
+            gameRow.className = 'align-items-center';
+
+            // Формирование строки с информацией о PSN аккаунте
+            const psnAccount = game.psnAccount ? game.psnAccount : {};
+            const psnAccountId = `psn-${game._id}`;
+            psnAccountsData[psnAccountId] = psnAccount;
+
+            const emailAccount = game.emailAccount ? game.emailAccount : {};
+            const emailAccountId = `email-${game._id}`;
+            emailAccountsData[emailAccountId] = emailAccount;
+
+
+            // Формирование кнопки для отображения кодов активации
+            let activationCodesButton = `<button class="btn btn-secondary" type="button" onclick="showActivationCodesModal('${game._id}')">Коды</button>`;
+
+            // Формирование кнопки для отображения информации об активациях
+            let activationInfoButton = `<button class="btn btn-secondary" type="button" onclick="showActivationInfoModal('${game._id}')">Информация об активации</button>`;
+
+            gameRow.innerHTML = `
+                <td>${game.account_number}</td>
+                <td><a href="#" class="game-link" onclick="editGame('${game._id}')">${game.gameName}</a></td>
+                <td>${game.purchaseDate}</td>
+                <td><a href="#" class="game-link" onclick="showPsnModal('${psnAccountId}')">${psnAccount.name || ''}</a></td>
+                <td><a href="#" class="game-link" onclick="showEmailModal('${emailAccountId}')">${emailAccount.email || ''}</a></td>
+                <td>${activationCodesButton}</td>
+                <td>${activationInfoButton}</td>
+                <td>
+                    <button onclick="editGame('${game._id}')" class="btn btn-sm btn-outline-secondary ml-2"><i class="fas fa-edit"></i></button>
+                    <button onclick="deleteGame('${game._id}')" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt"></i></button>
+                </td>
+            `;
+
+            gamesList.appendChild(gameRow);
+        });
+}
 
     async function findGame() {
     const searchGameName = document.getElementById('searchGameName').value;
@@ -275,6 +547,55 @@
     } catch (error) {
         console.error('Ошибка:', error);
         alert('Игра не найдена');
+    }
+}
+
+    function addGameForm() {
+    new bootstrap.Modal(document.getElementById('addGameModal')).show();
+}
+
+    async function submitAddGameForm(event) {
+    event.preventDefault(); // Предотвращение стандартного поведения формы
+
+    // Сбор данных из формы
+    const form = document.getElementById('addGameForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+        // Отправка данных о новой игре
+        const response = await fetch('/games/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            throw new Error('Произошла ошибка при добавлении игры');
+        }
+
+        // Получение ID новой игры
+        const result = await response.json();
+        const newGameId = result.id;
+
+        // Отправка статуса продажи для новой игры
+        await fetch(`/games/${newGameId}/sale-status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ saleStatus: data.saleStatus })
+        });
+
+        // Закрыть модальное окно и обновить страницу/список игр
+        $('#addGameModal').modal('hide');
+         window.location.reload(); // Перезагрузить страницу
+
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert('Ошибка при добавлении игры');
     }
 }
 
@@ -295,12 +616,24 @@
     const game = gamesData[gameId];
 
     // Заполнение формы данными игры
-    document.getElementById('editGameName').value = game.gameName;
-    document.getElementById('editGamePlatform').value = game.platform;
-    document.getElementById('editGamePurchaseDate').value = game.purchaseDate;
-
-    // Сохранение gameId в скрытом поле формы
     document.getElementById('editGameIdField').value = gameId;
+    document.getElementById('editGameName').value = game.gameName || '';
+    document.getElementById('editTransactionNumber').value = game.transactionNumber || '';
+    document.getElementById('editPrice').value = game.price || '';
+    document.getElementById('editGamePurchaseDate').value = game.purchaseDate || '';
+    document.getElementById('editLastDeactivationDate').value = game.lastDeactivationDate || '';
+    document.getElementById('editAdditionalInfo').value = game.additionalInfo || '';
+    document.getElementById('editComment').value = game.comment || '';
+
+    // Установка выбранного значения для статуса продажи
+    if (game.saleStatus) {
+        document.getElementById('editSaleStatus').value = game.saleStatus;
+    }
+
+    // Установка выбранного значения для статуса аренды
+    if (game.rentalInfo && game.rentalInfo.isRented) {
+        document.getElementById('editRentalStatus').value = game.rentalInfo.isRented;
+    }
 
     // Показ модального окна для редактирования
     new bootstrap.Modal(document.getElementById('gameEditModal')).show();
@@ -312,7 +645,6 @@
     const gameIdValue = document.getElementById('editGameIdField').value;
     const updatedGame = {
         gameName: document.getElementById('editGameName').value,
-        platform: document.getElementById('editGamePlatform').value,
         purchaseDate: document.getElementById('editGamePurchaseDate').value
     };
 
@@ -340,52 +672,12 @@
         }
     });
 
-    // Глобальный объект для хранения данных PSN аккаунтов
-    var psnAccountsData = {};
-
-    function displayGames(games) {
-    const gamesList = document.getElementById('gamesList').getElementsByTagName('tbody')[0];
-    gamesList.innerHTML = ''; // Очистка списка игр
-
-    games.forEach(game => {
-        const gameRow = document.createElement('tr');
-        gameRow.className = 'align-items-center';
-
-        // Создание выпадающего списка для кодов активации
-        let activationCodesButton = `<button class="btn btn-secondary" type="button" onclick="showActivationCodesModal('${game._id}')">Коды</button>`;
-
-        // Формируем строку для PSN аккаунта
-        const psnAccountId = `psn-${game._id}`;
-        const psnAccountName = game.transactions[0] && game.transactions[0].psnAccount
-            ? game.transactions[0].psnAccount.name
-            : '';
-
-        // Сохранение данных PSN аккаунта в глобальном объекте
-        psnAccountsData[psnAccountId] = game.transactions[0] ? game.transactions[0].psnAccount : null;
-
-        gameRow.innerHTML = `
-            <td>${game.account_number}</td>
-            <td><a href="#" class="game-link" onclick="editGame('${game._id}')">${game.gameName}</a></td>
-            <td>${game.platform}</td>
-            <td>${game.purchaseDate}</td>
-            <td><a href="#" class="game-link" onclick="showPsnModal('${psnAccountId}')">${psnAccountName}</a></td>
-            <td>${activationCodesButton}</td>
-            <td>
-                <button onclick="editGame('${game._id}')" class="btn btn-sm btn-outline-secondary ml-2"><i class="fas fa-edit"></i></button>
-                <button onclick="deleteGame('${game._id}')" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt"></i></button>
-            </td>
-        `;
-
-        gamesList.appendChild(gameRow);
-    });
-}
-
     function showActivationCodesModal(gameId) {
         const game = gamesData[gameId];
 
         let activationCodesHtml = '';
-        if (game.transactions && game.transactions[0] && game.transactions[0].activationCodes && game.transactions[0].activationCodes.length > 0) {
-            game.transactions[0].activationCodes.forEach((code, index) => {
+        if (game.activationCodes && game.activationCodes.length > 0) {
+            game.activationCodes.forEach((code, index) => {
                 activationCodesHtml += `
                     <div class="mb-2">
                         * ${code}
@@ -394,7 +686,7 @@
                     </div>`;
             });
         } else {
-            console.log('Коды активации не найдены');
+            activationCodesHtml = 'Коды активации не найдены';
         }
 
         // Кнопка "Обновить коды" теперь добавляется вне условного блока
@@ -404,7 +696,7 @@
 
         const modal = new bootstrap.Modal(document.getElementById('activationCodesModal'));
         modal.show();
-    }
+}
 
     function showUpdateCodesModal(gameId) {
         document.getElementById('gameIdField').value = gameId;
@@ -455,6 +747,9 @@
         });
     }
 
+    // Глобальный объект для хранения данных PSN аккаунтов
+    var psnAccountsData = {};
+
     function showPsnModal(psnAccountId) {
         const psnAccount = psnAccountsData[psnAccountId];
 
@@ -473,6 +768,80 @@
 
         const modal = new bootstrap.Modal(document.getElementById('psnModal'));
         modal.show();
+}
+
+    // Глобальный объект для хранения данных PSN аккаунтов
+    var emailAccountsData = {};
+
+    function showEmailModal(emailAccountId) {
+    const emailAccount = emailAccountsData[emailAccountId];
+
+        // Заполнение формы данными email аккаунта
+        document.getElementById('emailAccountIdField').value = emailAccountId;
+        document.getElementById('emailAddress').value = emailAccount.email || '';
+        document.getElementById('emailPassword').value = emailAccount.password || '';
+        document.getElementById('emailBirthDate').value = emailAccount.birthDate || '';
+        document.getElementById('emailSecretQuestionAnswer').value = emailAccount.secretQuestionAnswer || '';
+
+        // Показ модального окна для редактирования
+        new bootstrap.Modal(document.getElementById('emailModal')).show();
+}
+
+    const activationTitles = {
+        ps4ActivationP1: "PS4 - Оффлайн активация П1",
+        ps5ActivationP1: "PS5 - Оффлайн активация П1",
+        ps4ActivationP3: "PS4 - Активация П3",
+        ps5ActivationP3: "PS5 - Активация П3"
+};
+
+    function showActivationInfoModal(gameId) {
+        const game = gamesData[gameId];
+        let activationInfoHtml = '';
+
+        if (game.activationInfo) {
+            for (const key in game.activationInfo) {
+                const title = activationTitles[key] || key; // Используйте словарь для получения русского названия
+                activationInfoHtml += `<h5>${title}</h5><div class="activation-info">`;
+                game.activationInfo[key].forEach((info, index) => {
+                    activationInfoHtml += `
+                        <div class="activation-record">
+                            <span>Name: ${info.name || 'N/A'}</span><br>
+                            <span>Email: ${info.email || 'N/A'}</span><br>
+                            <span>VK: ${info.vkLink || 'N/A'}</span><br>
+                            <span>Telegram: ${info.tgLink || 'N/A'}</span>
+                            <button class="btn btn-sm" onclick="editActivation('${game._id}', '${key}', ${index})">&#x270F;</button>
+                            <button class="btn btn-sm" onclick="deleteActivation('${game._id}', '${key}', ${index})">&#x1F5D1;</button>
+                        </div>
+                        <hr>`;
+                });
+                activationInfoHtml += `</div>`;
+            }
+        } else {
+            activationInfoHtml = 'Информация об активации отсутствует';
+        }
+
+        document.getElementById('activationInfoContainer').innerHTML = activationInfoHtml;
+        new bootstrap.Modal(document.getElementById('activationInfoModal')).show();
+}
+
+    function editActivation(gameId, activationKey, index) {
+        const game = gamesData[gameId];
+        const activation = game.activationInfo[activationKey][index];
+
+        // Заполнение формы данными активации
+        document.getElementById('editActivationName').value = activation.name || '';
+        document.getElementById('editActivationEmail').value = activation.email || '';
+        document.getElementById('editActivationVkLink').value = activation.vkLink || '';
+        document.getElementById('editActivationTgLink').value = activation.tgLink || '';
+
+        // Сохранение информации об ID игры, ключе активации и индексе для дальнейшего обновления
+        const form = document.getElementById('editActivationForm');
+        form.dataset.gameId = gameId;
+        form.dataset.activationKey = activationKey;
+        form.dataset.index = index;
+
+        // Показ модального окна для редактирования
+        new bootstrap.Modal(document.getElementById('editActivationModal')).show();
 }
 
     async function submitPsnForm(event, gameId) {
