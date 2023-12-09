@@ -332,6 +332,14 @@
                             <option value="RECOVER">Восстановить</option>
                         </select>
                     </div>
+                    <!-- Статус аренды -->
+                    <div class="form-group">
+                        <label for="addRentalStatus">Статус аренды</label>
+                        <select class="form-control" id="addRentalStatus" name="rentalStatus">
+                            <option value="AVAILABLE">ДА</option>
+                            <option value="NOT_AVAILIABLE">НЕТ</option>
+                        </select>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -579,10 +587,27 @@
     async function submitAddGameForm(event) {
     event.preventDefault(); // Предотвращение стандартного поведения формы
 
-    // Сбор данных из формы
-    const form = document.getElementById('addGameForm');
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
+    // Преобразование статуса аренды и статуса продажи
+    const rentalStatusElement = document.getElementById('addRentalStatus');
+    const isRented = rentalStatusElement.value === 'AVAILABLE' ? 'ДА' : 'НЕТ';
+
+    const saleStatusElement = document.getElementById('addSaleStatus');
+    const saleStatusValue = saleStatusMappings[saleStatusElement.value] || null;
+
+    const gameData = {
+        account_number: document.getElementById('addAccountNumber').value,
+        gameName: document.getElementById('addGameName').value,
+        transactionNumber: document.getElementById('addTransactionNumber').value,
+        price: document.getElementById('addPrice').value,
+        purchaseDate: document.getElementById('addPurchaseDate').value,
+        lastDeactivationDate: document.getElementById('addLastDeactivationDate').value,
+        additionalInfo: document.getElementById('addAdditionalInfo').value,
+        comment: document.getElementById('addComment').value,
+        saleStatus: saleStatusValue,
+        rentalInfo: {
+            isRented: isRented
+        }
+    };
 
     try {
         // Отправка данных о новой игре
@@ -591,36 +616,23 @@
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify(gameData)
         });
 
         if (!response.ok) {
             throw new Error('Произошла ошибка при добавлении игры');
         }
 
-        // Получение ID новой игры
-        const result = await response.json();
-        const newGameId = result.id;
-
-        // Отправка статуса продажи для новой игры
-        await fetch(`/games/${newGameId}/sale-status`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ saleStatus: data.saleStatus })
-        });
-
         // Закрыть модальное окно и обновить страницу/список игр
         $('#addGameModal').modal('hide');
-         window.location.reload(); // Перезагрузить страницу
+        window.location.reload(); // Перезагрузить страницу
 
     } catch (error) {
         console.error('Ошибка:', error);
         alert('Ошибка при добавлении игры');
     }
 }
-
+    
     async function deleteGame(gameId) {
         try {
             const response = await fetch(`/games/${gameId}`, { method: 'DELETE' });

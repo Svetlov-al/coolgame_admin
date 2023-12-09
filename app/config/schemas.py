@@ -128,6 +128,8 @@ class Game(BaseModel):
     lastDeactivationDate: Optional[str] = None
     additionalInfo: Optional[str] = None
     comment: Optional[str] = None
+    rentalInfo: Optional[RentalInfo] = None
+    saleStatus: Optional[SaleStatus] = None
 
 
 class GameOut(Game):
