@@ -8,7 +8,6 @@ from app.routers import (
     codes,
     psn_account,
     email_account,
-    client_info,
     activation_info,
     rental_info
 )
@@ -33,7 +32,6 @@ app.include_router(games.router)
 app.include_router(codes.router)
 app.include_router(psn_account.router)
 app.include_router(email_account.router)
-app.include_router(client_info.router)
 app.include_router(activation_info.router)
 app.include_router(rental_info.router)
 

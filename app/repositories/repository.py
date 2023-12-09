@@ -30,8 +30,12 @@ class GameRepository:
         return await self.collection.find_one({'_id': ObjectId(game_id)})
 
     async def update_game(self, game_id: str, game_data: dict):
-        """Метод обновления данных игры"""
-        await self.collection.update_one({'_id': ObjectId(game_id)}, {'$set': game_data})
+        query = {'_id': ObjectId(game_id)}
+        update_fields = {f"{key}": value for key, value in game_data.items() if value is not None}
+        if not update_fields:
+            return False
+        result = await self.collection.update_one(query, {'$set': update_fields})
+        return True
 
     async def update_sale_status(self, game_id: str, sale_status: SaleStatus) -> bool:
         update_data = {'saleStatus': sale_status.value}

@@ -51,16 +51,16 @@ async def get_game_by_id(game_id: str):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Game not found")
 
 
-@router.put("/{game_id}",
-            status_code=status.HTTP_200_OK,
-            description="Обновление игры по идентификатору")
+@router.put("/{game_id}", status_code=status.HTTP_200_OK, description="Обновление игры по идентификатору")
 async def update_game(game_id: str, game_update: schemas.GameUpdate):
-    existing_game = await game_service.find_game_by_id(game_id)
-    if not existing_game:
+    update_data = game_update.model_dump(exclude_unset=True)
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    updated = await game_service.update_game(game_id, update_data)
+    if not updated:
         raise HTTPException(status_code=404, detail="Game not found")
 
-    update_data = game_update.model_dump(exclude_unset=True)
-    await game_service.update_game(game_id, update_data)
     return {"message": "Game updated successfully"}
 
 

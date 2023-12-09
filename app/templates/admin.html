@@ -86,6 +86,7 @@
             </div>
         </div>
     </div>
+
     <!-- Модальное окно для обновления кодов активации -->
     <div class="modal fade" id="updateCodesModal" tabindex="-1" aria-labelledby="updateCodesModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -434,6 +435,7 @@
         <div class="mb-4">
             <input type="text" id="searchGameName" class="form-control" placeholder="Поиск по названию игры">
             <button onclick="findGame()" class="btn btn-primary mt-2">Найти игру</button>
+            <button onclick="showAllGames()" class="btn btn-secondary mt-2">Показать все</button>
         </div>
 
         <!-- Кнопка добавить новую игру -->
@@ -460,7 +462,27 @@
                     </tbody>
                 </table>
             </div>
+    </div>
 
+    <!-- Модальное окно для подтверждения удаления -->
+    <div id="confirmDeleteModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Подтверждение удаления</h5>
+                    <button type="button" class="close close-button" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Вы уверены, что хотите удалить эту игру?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteButton">Удалить</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
@@ -525,7 +547,7 @@
                 <td>${activationInfoButton}</td>
                 <td>
                     <button onclick="editGame('${game._id}')" class="btn btn-sm btn-outline-secondary ml-2"><i class="fas fa-edit"></i></button>
-                    <button onclick="deleteGame('${game._id}')" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt"></i></button>
+                    <button onclick="showDeleteConfirmation('${game._id}')" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt"></i></button>
                 </td>
             `;
 
@@ -600,17 +622,31 @@
 }
 
     async function deleteGame(gameId) {
-    try {
-        const response = await fetch(`/games/${gameId}`, { method: 'DELETE' });
-        if (!response.ok) {
-            throw new Error('Failed to delete the game');
+        try {
+            const response = await fetch(`/games/${gameId}`, { method: 'DELETE' });
+            if (!response.ok) {
+                throw new Error('Failed to delete the game');
+            }
+            await loadGames(); // Перезагрузить список игр
+            // Скрываем модальное окно после успешного удаления
+            confirmDeleteModal.hide();
+        } catch (error) {
+            console.error('Ошибка:', error);
+            alert('Ошибка удаления игры');
         }
-        await loadGames(); // Перезагрузить список игр
-    } catch (error) {
-        console.error('Ошибка:', error);
-        alert('Ошибка удаления игры');
-    }
 }
+
+    const reverseSaleStatusMappings = {
+        'В продаже': 'FOR_SALE',
+        'Продано': 'SOLD',
+        'Прездаказ': 'PREORDER',
+        'В продаже PS5': 'FOR_SALE_PS5',
+        'В продаже PS4': 'FOR_SALE_PS4',
+        '! На продажу': 'PUSH_TO_SALE',
+        'В продаже П1': 'FOR_SALE_P1',
+        'Заблокирован': 'BLOCKED',
+        'Восстановить': 'RECOVER'
+    };
 
     function editGame(gameId) {
     const game = gamesData[gameId];
@@ -626,49 +662,94 @@
     document.getElementById('editComment').value = game.comment || '';
 
     // Установка выбранного значения для статуса продажи
-    if (game.saleStatus) {
-        document.getElementById('editSaleStatus').value = game.saleStatus;
+    const saleStatusElement = document.getElementById('editSaleStatus');
+    const saleStatusKey = reverseSaleStatusMappings[game.saleStatus];
+    if (saleStatusKey) {
+        saleStatusElement.value = saleStatusKey;
+    } else {
+        saleStatusElement.selectedIndex = 0; // Выбрать первый элемент в списке, например, пустой выбор или значение по умолчанию
     }
 
     // Установка выбранного значения для статуса аренды
+    const rentalStatusElement = document.getElementById('editRentalStatus');
     if (game.rentalInfo && game.rentalInfo.isRented) {
-        document.getElementById('editRentalStatus').value = game.rentalInfo.isRented;
+        rentalStatusElement.value = game.rentalInfo.isRented === 'ДА' ? 'AVAILABLE' : 'NOT_AVAILIABLE';
+    } else {
+        rentalStatusElement.selectedIndex = 0; // Выбрать первый элемент в списке
     }
 
     // Показ модального окна для редактирования
     new bootstrap.Modal(document.getElementById('gameEditModal')).show();
 }
 
+    const saleStatusMappings = {
+    'FOR_SALE': 'В продаже',
+    'SOLD': 'Продано',
+    'PREORDER': 'Прездаказ',
+    'FOR_SALE_PS5': 'В продаже PS5',
+    'FOR_SALE_PS4': 'В продаже PS4',
+    'PUSH_TO_SALE': '! На продажу',
+    'FOR_SALE_P1': 'В продаже П1',
+    'BLOCKED': 'Заблокирован',
+    'RECOVER': 'Восстановить'
+};
+
     document.getElementById('gameEditForm').addEventListener('submit', async function(event) {
-    event.preventDefault();
+        event.preventDefault(); // Предотвращаем стандартную отправку формы
 
-    const gameIdValue = document.getElementById('editGameIdField').value;
-    const updatedGame = {
-        gameName: document.getElementById('editGameName').value,
-        purchaseDate: document.getElementById('editGamePurchaseDate').value
-    };
+        const gameId = document.getElementById('editGameIdField').value;
+        const selectedSaleStatus = document.getElementById('editSaleStatus').value;
+        const saleStatusValue = saleStatusMappings[selectedSaleStatus] || null;
+        const isRented = document.getElementById('editRentalStatus').value === 'AVAILABLE' ? 'ДА' : 'НЕТ';
 
-    // Подготовка данных для PUT запроса
-    const requestData = { game: updatedGame };
+        const gameData = {
+            gameName: document.getElementById('editGameName').value,
+            transactionNumber: document.getElementById('editTransactionNumber').value,
+            price: document.getElementById('editPrice').value,
+            purchaseDate: document.getElementById('editGamePurchaseDate').value,
+            lastDeactivationDate: document.getElementById('editLastDeactivationDate').value,
+            additionalInfo: document.getElementById('editAdditionalInfo').value,
+            comment: document.getElementById('editComment').value,
+            rentalInfo: {
+                isRented: isRented
+            }
+        };
 
-        // Отправка PUT запроса
         try {
-            const response = await fetch(`/games/${gameIdValue}`, {
+            // Отправка основных данных игры
+            const gameResponse = await fetch(`/games/${gameId}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestData)
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(gameData)
             });
 
-            if (response.ok) {
-                $('#gameEditModal').modal('hide'); // Закрыть модальное окно
-                window.location.reload(); // Перезагрузить страницу
-            } else {
-                console.error('Ошибка при обновлении данных: ', response.statusText);
+            if (!gameResponse.ok) {
+                throw new Error('Failed to update the game');
             }
+
+            // Отправка статуса продажи
+            if (saleStatusValue) {
+                const saleStatusResponse = await fetch(`/games/${gameId}/sale-status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ saleStatus: saleStatusValue })
+                });
+
+                if (!saleStatusResponse.ok) {
+                    throw new Error('Failed to update the sale status');
+                }
+            }
+
+            const gameResult = await gameResponse.json();
+            console.log(gameResult.message);
+
+            // Закрываем модальное окно после успешного обновления
+            const gameEditModal = bootstrap.Modal.getInstance(document.getElementById('gameEditModal'));
+            gameEditModal.hide();
+            window.location.reload();
         } catch (error) {
-            console.error('Ошибка при отправке запроса: ', error);
+            console.error('Ошибка:', error);
+            alert('Ошибка обновления игры');
         }
     });
 
@@ -920,6 +1001,23 @@
             console.error('Error:', error);
         });
     }
+
+    function showAllGames() {
+        document.getElementById('searchGameName').value = ''; // Очистка поля поиска
+        loadGames(); // Предполагается, что у вас есть функция loadGames для загрузки и отображения всех игр
+}
+
+    let confirmDeleteModal;
+
+    function showDeleteConfirmation(gameId) {
+        // Сохраняем ID игры в кнопке подтверждения
+        document.getElementById('confirmDeleteButton').onclick = function() {
+            deleteGame(gameId);
+        };
+        // Показываем модальное окно
+        confirmDeleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+        confirmDeleteModal.show();
+}
 
 </script>
 <!-- Подключение Bootstrap JS -->

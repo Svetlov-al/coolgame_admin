@@ -67,7 +67,7 @@ Content-Type: application/json
 
 
 ### Test add codes to game endpoint
-PUT http://localhost:8000/codes/656e2dc401dbeba57f836cf7
+PUT http://localhost:8000/codes/65744017c68fcccb1ec10a6b
 Accept: application/json
 Content-Type: application/json
 
@@ -80,7 +80,7 @@ Accept: application/json
 Content-Type: application/json
 
 ### Test add client info in activations
-POST http://127.0.0.1:8000/activation/656e2dc401dbeba57f836cf7/?activation_type=ps5ActivationP3
+POST http://127.0.0.1:8000/activation/65744017c68fcccb1ec10a6b/?activation_type=ps5ActivationP3
 Accept: application/json
 Content-Type: application/json
 

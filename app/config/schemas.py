@@ -135,7 +135,7 @@ class GameOut(Game):
     psnAccount: Optional[PSNAccount] = None
     emailAccount: Optional[EmailAccount] = None
     activationCodes: Optional[List[str]] = []
-    activationInfo: Optional[ActivationInfo] = []
+    activationInfo: Optional[List[str]] = []
     rentalInfo: Optional[RentalInfo] = None
     saleStatus: Optional[SaleStatus] = None
 
@@ -155,3 +155,4 @@ class GameUpdate(BaseModel):
     lastDeactivationDate: Optional[str] = None
     additionalInfo: Optional[str] = None
     comment: Optional[str] = None
+    rentalInfo: Optional[RentalInfo] = None

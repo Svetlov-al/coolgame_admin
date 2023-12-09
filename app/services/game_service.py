@@ -38,18 +38,10 @@ class GameService:
             return GameOut(**game)
         return None
 
-    async def update_game(self, game_id: str, update_data: dict):
-        """Метод обновления полей для игры"""
-        existing_game = await self.find_game_by_id(game_id)
-        if not existing_game:
-            raise ValueError("Game not found")
-
-        # Обновление только предоставленных полей
-        for key, value in update_data.items():
-            if value is not None:
-                setattr(existing_game, key, value)
-
-        return await game_repository.update_game(game_id, existing_game.model_dump())
+    @staticmethod
+    async def update_game(game_id: str, update_data: dict):
+        updated = await game_repository.update_game(game_id, update_data)
+        return updated
 
     async def update_sale_status(self, game_id: str, sale_status: SaleStatus) -> str:
         existing_game = await self.find_game_by_id(game_id)
