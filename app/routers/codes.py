@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import APIRouter, HTTPException, Response, status
 
 from config import schemas
@@ -25,6 +27,7 @@ async def get_codes(game_id: str):
             status_code=status.HTTP_200_OK,
             description="Обновление кодов активации игры")
 async def update_codes(game_id: str, codes_update: schemas.ActivationCodes):
+    print(codes_update)
     existing_game = await game_service.find_game_by_id(game_id)
     if not existing_game:
         raise HTTPException(status_code=404, detail="Game not found")

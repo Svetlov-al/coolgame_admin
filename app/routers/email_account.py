@@ -27,6 +27,7 @@ async def add_email_account(game_id: str, email_account: schemas.EmailAccount):
 
 @router.put("/{game_id}", status_code=status.HTTP_200_OK, description="Обновление Email аккаунта в игре")
 async def update_email_account(game_id: str, email_account: schemas.EmailAccountOut):
+    print(email_account)
     await email_service.update_email_account(game_id, email_account)
     return {"message": "Email account updated successfully"}
 
