@@ -59,8 +59,6 @@ class GameRepository:
             ]
         }
         games = await self.collection.find(query).skip(skip).limit(limit).to_list(None)
-        if games is None:
-            return []
         return games
 
     async def get_game_by_id(self, game_id: str) -> dict:

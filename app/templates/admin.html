@@ -758,11 +758,6 @@
 
     document.addEventListener('DOMContentLoaded', async function () {
         await loadGames(); // Загрузка игр при инициализации страницы
-
-        const searchInput = document.getElementById('searchGameName');
-        searchInput.addEventListener('input', async (event) => {
-            await performSearch(event.target.value);
-        });
     });
 
     var gamesData = {}; // Глобальный объект для хранения данных игр
@@ -770,30 +765,43 @@
     let rentalPrice = null;
     let rentalDate = null;
 
+
     let currentSkip = 0;
-    let endOfDataReached = false;
-    const limit = 50;
+    const limit = 20;
 
     let searchSkip = 0;
-    const searchLimit = 50;
+    const searchLimit = 20;
+
+
+    let endOfDataReached = false;
     let isSearching = false; // Флаг для отслеживания, выполняется ли в данный момент поиск
     let isLoading = false;
+    let isSearchLoading = false;
 
-    window.addEventListener('scroll', async () => {
-    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100 && !endOfDataReached) {
-        if (isSearching) {
-            searchSkip += searchLimit;
-            await performSearch(searchInput.value, searchSkip, searchLimit);
-        } else {
-            currentSkip += limit;
-            await loadGames(currentSkip, limit);
+    let scrollTimeout = null;
+
+    window.addEventListener('scroll', () => {
+        if (scrollTimeout) {
+            clearTimeout(scrollTimeout); // Очистка предыдущего таймаута, если он есть
         }
-    }
-});
 
+        scrollTimeout = setTimeout(async () => {
+            if (!isLoading && !isSearchLoading && (window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100 && !endOfDataReached) {
+                if (isSearching) {
+                    isSearchLoading = true;
+                    await performSearch(searchInput.value, searchSkip, searchLimit);
+                    isSearchLoading = false;
+                } else {
+                    isLoading = true;
+                    await loadGames(currentSkip, limit);
+                    isLoading = false;
+                }
+            }
+        }, 200); // Задержка в 200 мс
+    });
 
-    async function loadGames(skip = 0, limit = 50) {
-        if (endOfDataReached) return; // Прекратить загрузку, если достигнут конец данных
+    async function loadGames(skip = 0, limit = 10) {
+        if (endOfDataReached) return;
         try {
             const response = await fetch(`/games/?skip=${skip}&limit=${limit}`);
             if (!response.ok) {
@@ -801,11 +809,10 @@
             }
 
             const games = await response.json();
-
             if (games.length < limit) {
-                endOfDataReached = true; // Больше нет данных для загрузки
+                endOfDataReached = true;
             } else {
-                currentSkip += limit; // Увеличиваем skip только если есть еще данные
+                currentSkip += limit; // Увеличиваем здесь
             }
             games.forEach(game => {
                 gamesData[game._id] = game; // Обновление глобального объекта gamesData
@@ -815,6 +822,7 @@
             console.error('Ошибка:', error);
             alert('Не удалось загрузить список игр');
         }
+        isLoading = false;
 }
 
     async function displayGames(games) {
@@ -1102,13 +1110,12 @@
     }
 }
 
-    async function performSearch(input, skip = 0, limit = 50) {
+    async function performSearch(input, skip = 0, limit = 10) {
     if (input.trim().length === 0) {
         isSearching = false;
         endOfDataReached = false;
         currentSkip = 0;
         searchSkip = 0;
-        await loadGames();
         return;
     }
     if (input.length > 3) {
@@ -1127,6 +1134,8 @@
             .then(data => {
                 if (data.length < limit) {
                     endOfDataReached = true;
+                } else {
+                    searchSkip += searchLimit
                 }
                 displaySearchResults(data, skip === 0); // Вызов с флагом clearList
             })
@@ -1138,24 +1147,32 @@
         isSearching = false;
         await loadGames();
     }
+    isSearchLoading = false;
 }
 
     let searchTimeout = null;
+    let previousSearch = "";
 
     const searchInput = document.getElementById('searchGameName');
     searchInput.addEventListener('input', (event) => {
         clearTimeout(searchTimeout);
+        const inputValue = event.target.value.trim();
+
         searchTimeout = setTimeout(async () => {
-            if (event.target.value.trim().length === 0) {
+            if (inputValue.length === 0) {
                 isSearching = false;
                 currentSkip = 0;
                 await loadGames();
-                window.location.reload()
-            } else {
-                await performSearch(event.target.value);
+                window.location.reload();
+            } else if (inputValue.length >= 4 && inputValue !== previousSearch) {
+                previousSearch = inputValue;
+                isSearching = true;
+                searchSkip = 0; // Сброс searchSkip для нового поиска
+                await performSearch(inputValue);
             }
         }, 1000);
     });
+
 
     async function findGame() {
     const searchGameName = document.getElementById('searchGameName').value;
@@ -1847,7 +1864,10 @@
         currentSkip = 0; // Сброс текущего положения пагинации
         isSearching = false; // Указываем, что мы не в режиме поиска
         endOfDataReached = false; // Сброс флага окончания данных
+        let searchTimeout = null;
+        let previousSearch = "";
         await loadGames(); // Загрузка и отображение всех игр
+        window.location.reload()
 }
 
     let confirmDeleteModal;

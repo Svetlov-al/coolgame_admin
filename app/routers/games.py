@@ -43,7 +43,7 @@ async def search_games(query: str = Query(None), skip: int = 0, limit: int = 50)
     if games:
         return games
     else:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Games not found")
+        return []
 
 
 @router.post("/",
