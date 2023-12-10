@@ -26,7 +26,7 @@ class GameRepository:
         games = await self.collection.find({'gameName': regex}).to_list(None)
         return games
 
-    async def search_games(self, search_query: str) -> list[dict]:
+    async def search_games(self, search_query: str, skip: int, limit: int) -> list[dict]:
         """Метод поиска игр по разным полям"""
         regex = re.compile(search_query, re.IGNORECASE)
         query = {
@@ -58,7 +58,9 @@ class GameRepository:
                 {"activationInfo.ps5ActivationP3.tgLink": regex},
             ]
         }
-        games = await self.collection.find(query).to_list(None)
+        games = await self.collection.find(query).skip(skip).limit(limit).to_list(None)
+        if games is None:
+            return []
         return games
 
     async def get_game_by_id(self, game_id: str) -> dict:

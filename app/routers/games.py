@@ -19,7 +19,6 @@ router = APIRouter(
             )
 async def get_games(skip: int = 0, limit: int = 50):
     games = await game_service.get_games(skip, limit)
-    print(len(games))
     return games
 
 
@@ -39,8 +38,8 @@ async def find_game(gamename: str = Query(None)):
             response_model=list[schemas.GameOut],
             status_code=status.HTTP_200_OK,
             description="Поиск игры по разным полям")
-async def search_games(query: str = Query(None)):
-    games = await game_service.search_games(search_query=query)
+async def search_games(query: str = Query(None), skip: int = 0, limit: int = 50):
+    games = await game_service.search_games(search_query=query, skip=skip, limit=limit)
     if games:
         return games
     else:
