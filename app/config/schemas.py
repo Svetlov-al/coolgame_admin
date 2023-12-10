@@ -126,7 +126,6 @@ class Game(BaseModel):
     price: float
     purchaseDate: str
     lastDeactivationDate: Optional[str] = None
-    additionalInfo: Optional[str] = None
     comment: Optional[str] = None
     rentalInfo: Optional[RentalInfo] = None
     saleStatus: Optional[SaleStatus] = None
@@ -155,6 +154,5 @@ class GameUpdate(BaseModel):
     price: Optional[float] = None
     purchaseDate: Optional[str] = None
     lastDeactivationDate: Optional[str] = None
-    additionalInfo: Optional[str] = None
     comment: Optional[str] = None
     rentalInfo: Optional[RentalInfo] = None

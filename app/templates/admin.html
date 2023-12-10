@@ -89,6 +89,24 @@
             color: #ecf0f1; /* Ensures text and buttons are also legible against the dark background */
         }
 
+        .comment-editable {
+            min-height: 30px; /* Минимальная высота по умолчанию */
+            width: 100%; /* Ширина поля во всю доступную ширину ячейки */
+            border: 1px solid #ccc; /* Граница поля */
+            padding: 5px; /* Отступы внутри поля */
+            /* Добавьте сюда любые другие стили, которые вы хотите применить */
+        }
+
+        .comment-editable:focus {
+            min-height: 80px; /* Увеличиваем высоту поля при фокусе */
+            outline: none; /* Убираем стандартный outline при фокусе */
+            border-color: #007bff; /* Меняем цвет границы при фокусе */
+        }
+        .comments-cell {
+            max-width: 200px; /* Пример максимальной ширины */
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
 
     </style>
 </head>
@@ -392,11 +410,6 @@
                         <label for="addLastDeactivationDate">Дата последней деактивации</label>
                         <input type="date" class="form-control" id="addLastDeactivationDate" name="lastDeactivationDate">
                     </div>
-                    <!-- Дополнительная информация -->
-                    <div class="form-group">
-                        <label for="addAdditionalInfo">Дополнительная информация</label>
-                        <input type="text" class="form-control" id="addAdditionalInfo" name="additionalInfo">
-                    </div>
                     <!-- Комментарий -->
                     <div class="form-group">
                         <label for="addComment">Комментарий</label>
@@ -475,11 +488,6 @@
                         <label for="editLastDeactivationDate">Дата последней деактивации</label>
                         <input type="date" class="form-control" id="editLastDeactivationDate" name="lastDeactivationDate">
                     </div>
-                    <!-- Дополнительная информация -->
-                    <div class="form-group">
-                        <label for="editAdditionalInfo">Дополнительная информация</label>
-                        <input type="text" class="form-control" id="editAdditionalInfo" name="additionalInfo">
-                    </div>
                     <!-- Комментарий -->
                     <div class="form-group">
                         <label for="editComment">Комментарий</label>
@@ -544,6 +552,25 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Модальное окно подтверждения удаления -->
+    <div class="modal custom-modal" id="confirmationModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Подтвердите удаление</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p id="confirmationText">Вы уверены, что хотите удалить этот код?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+            <button type="button" class="btn btn-danger" id="confirmDelete">Удалить</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Модальное окно для данных аренды -->
@@ -635,6 +662,52 @@
         </div>
     </div>
 
+    <!--    &lt;!&ndash; Модальное окно для изменения статуса продажи &ndash;&gt;-->
+    <!--    <div class="modal" id="saleStatusModal" tabindex="-1">-->
+    <!--      <div class="modal-dialog">-->
+    <!--        <div class="modal-content">-->
+    <!--          <form id="saleStatusForm">-->
+    <!--            <div class="modal-header">-->
+    <!--              <h5 class="modal-title">Изменение статуса продажи</h5>-->
+    <!--              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>-->
+    <!--            </div>-->
+    <!--            <div class="modal-body">-->
+    <!--              <select class="form-select" id="saleStatusSelect">-->
+    <!--                &lt;!&ndash; Опции статуса продажи здесь &ndash;&gt;-->
+    <!--              </select>-->
+    <!--            </div>-->
+    <!--            <div class="modal-footer">-->
+    <!--              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>-->
+    <!--              <button type="submit" class="btn btn-primary">Сохранить</button>-->
+    <!--            </div>-->
+    <!--          </form>-->
+    <!--        </div>-->
+    <!--      </div>-->
+    <!--    </div>-->
+
+    <!-- Модальное окно для изменения статуса продажи -->
+    <div class="modal custom-modal" id="saleStatusModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="saleStatusForm">
+            <div class="modal-header">
+              <h5 class="modal-title">Изменение статуса продажи</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div id="saleStatusOptions">
+                <!-- Радиокнопки для статусов будут добавлены здесь -->
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+              <button type="submit" class="btn btn-primary">Сохранить</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <!-- Основной контейнер -->
     <div class="custom-container">
         <h1 class="text-center my-4">База данных по играм</h1>
@@ -655,15 +728,15 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th scope="col">Номер аккаунта</th>
+                        <th scope="col">№</th>
                         <th scope="col">Название</th>
-<!--                        <th scope="col">Статус</th>-->
-                        <th scope="col">Дата покупки</th>
+                        <th scope="col">Статус</th>
+<!--                        <th scope="col">Дата покупки</th>-->
                         <th scope="col">Email Аккаунт</th>
                         <th scope="col">Аккаунт PSN</th>
                         <th scope="col">Коды активаций</th>
                         <th scope="col">Информация активаций</th>
-                        <th scope="col">Комментарий</th>
+                        <th scope="col" class="comments-column">Комментарий</th>
                         <th scope="col">Действия</th>
                     </tr>
                 </thead>
@@ -730,9 +803,9 @@
 
         let psnAccountContent;
         if (psnAccount.name) {
-            psnAccountContent = `<a href="#" class="game-link" onclick="showPsnModal('${psnAccountId}')">${psnAccount.name}</a>`;
+            psnAccountContent = `<a href="#" class="btn btn-sm btn-warning" onclick="showPsnModal('${psnAccountId}')">${psnAccount.name}</a>`;
         } else {
-            psnAccountContent = `<button class="btn btn-sm btn-outline-primary" onclick="showPsnModal('${psnAccountId}')">Добавить PSN</button>`;
+            psnAccountContent = `<button class="btn btn-sm btn-warning" onclick="showPsnModal('${psnAccountId}')">Добавить PSN</button>`;
         }
 
         // Формирование содержимого для Email аккаунта и сохранение данных в emailAccountsData
@@ -742,9 +815,9 @@
 
         let emailAccountContent;
         if (emailAccount.email) {
-            emailAccountContent = `<a href="#" class="game-link" onclick="showEmailModal('${emailAccountId}')">${emailAccount.email}</a>`;
+            emailAccountContent = `<a href="#" class="btn btn-sm btn-secondary" onclick="showEmailModal('${emailAccountId}')">${emailAccount.email}</a>`;
         } else {
-            emailAccountContent = `<button class="btn btn-sm btn-outline-primary" onclick="showEmailModal('${emailAccountId}')">Добавить Email</button>`;
+            emailAccountContent = `<button class="btn btn-sm btn-secondary" onclick="showEmailModal('${emailAccountId}')">Добавить Email</button>`;
         }
 
         // Формирование кнопок для кодов активации и информации об активациях
@@ -754,10 +827,19 @@
          // Формирование строки таблицы
         gameRow.innerHTML = `
             <td>${game.account_number}</td>
-            <td><a href="#" class="game-link" onclick="editGame('${game._id}')">${game.gameName}</a></td>
-            <td>${game.purchaseDate}</td>
+            <td><a href="#" class="btn btn-sm btn-dark" onclick="editGame('${game._id}')">${game.gameName}</a></td>
+            <td>
+                ${game.saleStatus}
+                <button class="btn btn-sm btn-outline-primary" onclick="showSaleStatusModal('${game._id}')">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </td>
             <td>${emailAccountContent}</td>
-            <td>${psnAccountContent}</td>
+            <td>
+                ${psnAccountContent}
+                <button onclick="showUpdatePsnPasswordModal('${game._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-key"></i></button>
+                <button onclick="showAccessInfoModal('${game._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-info-circle"></i></button>
+            </td>
             <td>${activationCodesButton}</td>
             <td>${activationInfoButton}</td>
             <td></td>
@@ -769,12 +851,47 @@
 
         // Создание элемента для комментария
         const commentCell = gameRow.cells[7];
+        commentCell.className = 'comments-cell';
+        // Создание контейнера для комментария и кнопки
+        const commentContainer = document.createElement('div');
+        commentContainer.style.display = 'flex'; // Используем flexbox для горизонтального расположения
+        commentContainer.style.alignItems = 'center'; // Выравниваем элементы по центру по вертикали
+
+        // Создание элемента для комментария
         const commentDiv = document.createElement('div');
         commentDiv.className = 'comment-editable';
         commentDiv.setAttribute('contenteditable', 'true');
         commentDiv.setAttribute('data-placeholder', 'Добавить комментарий');
         commentDiv.textContent = game.comment || '';
         commentDiv.setAttribute('data-game-id', game._id);
+
+        // Добавление обработчиков событий для расширения поля при фокусе
+        commentDiv.addEventListener('focus', () => {
+            commentDiv.style.minHeight = '80px'; // Увеличиваем высоту при фокусе
+        });
+
+        commentDiv.addEventListener('blur', () => {
+            commentDiv.style.minHeight = '40px'; // Возвращаем исходную высоту при потере фокуса
+        });
+
+        commentDiv.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            // Предотвращаем дефолтное поведение для клавиши Enter
+            event.preventDefault();
+
+            // Вставляем перенос строки
+            document.execCommand('insertHTML', false, '<br><br>');
+
+            // Перемещаем курсор на новую строку
+            const range = document.createRange();
+            const sel = window.getSelection();
+            range.selectNodeContents(commentDiv);
+            range.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+    });
+
         const originalComment = commentDiv.textContent; // Сохранение первоначального комментария
 
         // Создание кнопки для подтверждения изменений
@@ -782,11 +899,11 @@
         confirmButton.innerHTML = '<i class="fas fa-check"></i>'; // Использование иконки Font Awesome
         confirmButton.className = 'confirm-button';
         confirmButton.style.display = 'none'; // Изначально кнопка скрыта
-        confirmButton.style.background = 'none'; // Прозрачный фон
-        confirmButton.style.border = 'none'; // Убрать границу
-        confirmButton.style.padding = '0'; // Убрать отступы
-        confirmButton.style.cursor = 'pointer'; // Стиль курсора при наведении
-
+        confirmButton.style.background = 'none';
+        confirmButton.style.border = 'none';
+        confirmButton.style.padding = '0';
+        confirmButton.style.cursor = 'pointer';
+        confirmButton.style.marginLeft = '10px'; // Отступ слева от комментария
         confirmButton.onclick = () => submitComment(commentDiv, confirmButton);
 
         commentDiv.addEventListener('input', () => {
@@ -797,8 +914,13 @@
                 confirmButton.style.display = 'none';
             }
         });
-        commentCell.appendChild(commentDiv);
-        commentCell.appendChild(confirmButton);
+
+        // Добавляем элементы в контейнер и контейнер в ячейку
+        commentContainer.appendChild(commentDiv);
+        commentContainer.appendChild(confirmButton);
+        commentCell.appendChild(commentContainer);
+
+        // Остальная часть вашего кода...
 
         gamesList.appendChild(gameRow);
     });
@@ -810,50 +932,137 @@
 
     if (results && Array.isArray(results)) {
         results.forEach(game => {
-            const gameRow = document.createElement('tr');
-            gameRow.className = 'align-items-center';
+        const gameRow = document.createElement('tr');
+        gameRow.className = 'align-items-center';
 
-            // Формирование строки с информацией о PSN аккаунте и Email аккаунте
-            const psnAccount = game.psnAccount ? game.psnAccount : {};
-            const psnAccountId = `psn-${game._id}`;
-            psnAccountsData[psnAccountId] = psnAccount;
+        // Формирование строки с информацией о PSN аккаунте
+        const psnAccount = game.psnAccount ? game.psnAccount : {};
+        const psnAccountId = `psn-${game._id}`;
+        psnAccountsData[psnAccountId] = psnAccount;
 
-            let psnAccountContent = psnAccount.name ?
-                `<a href="#" class="game-link" onclick="showPsnModal('${psnAccountId}')">${psnAccount.name}</a>` :
-                `<button class="btn btn-sm btn-outline-primary" onclick="showPsnModal('${psnAccountId}')">Добавить PSN</button>`;
+        let psnAccountContent;
+        if (psnAccount.name) {
+            psnAccountContent = `<a href="#" class="btn btn-sm btn-warning" onclick="showPsnModal('${psnAccountId}')">${psnAccount.name}</a>`;
+        } else {
+            psnAccountContent = `<button class="btn btn-sm btn-warning" onclick="showPsnModal('${psnAccountId}')">Добавить PSN</button>`;
+        }
 
-            const emailAccount = game.emailAccount ? game.emailAccount : {};
-            const emailAccountId = `email-${game._id}`;
-            emailAccountsData[emailAccountId] = emailAccount;
+        // Формирование содержимого для Email аккаунта и сохранение данных в emailAccountsData
+        const emailAccount = game.emailAccount ? game.emailAccount : {};
+        const emailAccountId = `email-${game._id}`;
+        emailAccountsData[emailAccountId] = emailAccount;
 
-            let emailAccountContent = emailAccount.email ?
-                `<a href="#" class="game-link" onclick="showEmailModal('${emailAccountId}')">${emailAccount.email}</a>` :
-                `<button class="btn btn-sm btn-outline-primary" onclick="showEmailModal('${emailAccountId}')">Добавить Email</button>`;
+        let emailAccountContent;
+        if (emailAccount.email) {
+            emailAccountContent = `<a href="#" class="btn btn-sm btn-secondary" onclick="showEmailModal('${emailAccountId}')">${emailAccount.email}</a>`;
+        } else {
+            emailAccountContent = `<button class="btn btn-sm btn-secondary" onclick="showEmailModal('${emailAccountId}')">Добавить Email</button>`;
+        }
 
-            // Формирование кнопок для отображения кодов активации и информации об активациях
-            let activationCodesButton = `<button class="btn btn-sm btn-outline-primary" type="button" onclick="showActivationCodesModal('${game._id}')">Коды</button>`;
-            let activationInfoButton = `<button class="btn btn-sm btn-outline-primary" type="button" onclick="showActivationInfoModal('${game._id}')">Информация об активации</button>`;
+        // Формирование кнопок для кодов активации и информации об активациях
+        const activationCodesButton = `<button class="btn btn-sm btn-outline-primary" onclick="showActivationCodesModal('${game._id}')">Коды</button>`;
+        const activationInfoButton = `<button class="btn btn-sm btn-outline-primary" onclick="showActivationInfoModal('${game._id}')">Информация об активации</button>`;
 
-            // Формирование строки таблицы
-            gameRow.innerHTML = `
-                <td>${game.account_number}</td>
-                <td><a href="#" class="game-link" onclick="editGame('${game._id}')">${game.gameName}</a></td>
-                <td>${game.purchaseDate}</td>
-                <td>${emailAccountContent}</td>
-                <td>${psnAccountContent}
-                    <button onclick="showUpdatePsnPasswordModal('${game._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-key"></i></button>
-                    <button onclick="showAccessInfoModal('${game._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-info-circle"></i></button>
-                </td>
-                <td>${activationCodesButton}</td>
-                <td>${activationInfoButton}</td>
-                <td>
-                    <button onclick="editGame('${game._id}')" class="btn btn-sm btn-outline-secondary ml-2"><i class="fas fa-edit"></i></button>
-                    <button onclick="showDeleteConfirmation('${game._id}')" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt"></i></button>
-                </td>
-            `;
+         // Формирование строки таблицы
+        gameRow.innerHTML = `
+            <td>${game.account_number}</td>
+            <td><a href="#" class="btn btn-sm btn-dark" onclick="editGame('${game._id}')">${game.gameName}</a></td>
+            <td>
+                ${game.saleStatus}
+                <button class="btn btn-sm btn-outline-primary" onclick="showSaleStatusModal('${game._id}')">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </td>
+            <td>${emailAccountContent}</td>
+            <td>
+                ${psnAccountContent}
+                <button onclick="showUpdatePsnPasswordModal('${game._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-key"></i></button>
+                <button onclick="showAccessInfoModal('${game._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-info-circle"></i></button>
+            </td>
+            <td>${activationCodesButton}</td>
+            <td>${activationInfoButton}</td>
+            <td></td>
+            <td>
+                <button onclick="editGame('${game._id}')" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button>
+                <button onclick="showDeleteConfirmation('${game._id}')" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt"></i></button>
+            </td>
+        `;
 
-            gamesList.appendChild(gameRow);
+        // Создание элемента для комментария
+        const commentCell = gameRow.cells[7];
+        commentCell.className = 'comments-cell';
+        // Создание контейнера для комментария и кнопки
+        const commentContainer = document.createElement('div');
+        commentContainer.style.display = 'flex'; // Используем flexbox для горизонтального расположения
+        commentContainer.style.alignItems = 'center'; // Выравниваем элементы по центру по вертикали
+
+        // Создание элемента для комментария
+        const commentDiv = document.createElement('div');
+        commentDiv.className = 'comment-editable';
+        commentDiv.setAttribute('contenteditable', 'true');
+        commentDiv.setAttribute('data-placeholder', 'Добавить комментарий');
+        commentDiv.textContent = game.comment || '';
+        commentDiv.setAttribute('data-game-id', game._id);
+
+        // Добавление обработчиков событий для расширения поля при фокусе
+        commentDiv.addEventListener('focus', () => {
+            commentDiv.style.minHeight = '80px'; // Увеличиваем высоту при фокусе
         });
+
+        commentDiv.addEventListener('blur', () => {
+            commentDiv.style.minHeight = '40px'; // Возвращаем исходную высоту при потере фокуса
+        });
+
+        commentDiv.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            // Предотвращаем дефолтное поведение для клавиши Enter
+            event.preventDefault();
+
+            // Вставляем перенос строки
+            document.execCommand('insertHTML', false, '<br><br>');
+
+            // Перемещаем курсор на новую строку
+            const range = document.createRange();
+            const sel = window.getSelection();
+            range.selectNodeContents(commentDiv);
+            range.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+    });
+
+        const originalComment = commentDiv.textContent; // Сохранение первоначального комментария
+
+        // Создание кнопки для подтверждения изменений
+        const confirmButton = document.createElement('button');
+        confirmButton.innerHTML = '<i class="fas fa-check"></i>'; // Использование иконки Font Awesome
+        confirmButton.className = 'confirm-button';
+        confirmButton.style.display = 'none'; // Изначально кнопка скрыта
+        confirmButton.style.background = 'none';
+        confirmButton.style.border = 'none';
+        confirmButton.style.padding = '0';
+        confirmButton.style.cursor = 'pointer';
+        confirmButton.style.marginLeft = '10px'; // Отступ слева от комментария
+        confirmButton.onclick = () => submitComment(commentDiv, confirmButton);
+
+        commentDiv.addEventListener('input', () => {
+            // Показываем кнопку только если комментарий изменен
+            if (commentDiv.textContent !== originalComment) {
+                confirmButton.style.display = 'inline';
+            } else {
+                confirmButton.style.display = 'none';
+            }
+        });
+
+        // Добавляем элементы в контейнер и контейнер в ячейку
+        commentContainer.appendChild(commentDiv);
+        commentContainer.appendChild(confirmButton);
+        commentCell.appendChild(commentContainer);
+
+        // Остальная часть вашего кода...
+
+        gamesList.appendChild(gameRow);
+    });
     } else {
         // Если результаты null или не массив, выводим сообщение об отсутствии результатов в таблице
         const noResultsRow = document.createElement('tr');
@@ -862,7 +1071,6 @@
     }
 }
 
-    // Измененная функция performSearch для использования displaySearchResults
     function performSearch(input) {
     if (input.length > 3) {
         fetch(`/games/search_games?query=${encodeURIComponent(input)}`)
@@ -948,7 +1156,6 @@
         price: document.getElementById('addPrice').value,
         purchaseDate: document.getElementById('addPurchaseDate').value,
         lastDeactivationDate: document.getElementById('addLastDeactivationDate').value,
-        additionalInfo: document.getElementById('addAdditionalInfo').value,
         comment: document.getElementById('addComment').value,
         saleStatus: saleStatusValue,
         rentalInfo: {
@@ -1019,7 +1226,6 @@
     document.getElementById('editPrice').value = game.price || '';
     document.getElementById('editGamePurchaseDate').value = game.purchaseDate || '';
     document.getElementById('editLastDeactivationDate').value = game.lastDeactivationDate || '';
-    document.getElementById('editAdditionalInfo').value = game.additionalInfo || '';
     document.getElementById('editComment').value = game.comment || '';
 
     fillRentalDataModal(game);
@@ -1071,7 +1277,6 @@
             price: document.getElementById('editPrice').value,
             purchaseDate: document.getElementById('editGamePurchaseDate').value,
             lastDeactivationDate: document.getElementById('editLastDeactivationDate').value,
-            additionalInfo: document.getElementById('editAdditionalInfo').value,
             comment: document.getElementById('editComment').value,
             rentalInfo: {
                 isRented: isRented,
@@ -1118,6 +1323,63 @@
         }
     });
 
+    function showSaleStatusModal(gameId) {
+    const saleStatusOptions = document.getElementById('saleStatusOptions');
+    saleStatusOptions.innerHTML = '';
+
+    // Создание радиокнопок для каждого статуса
+    Object.keys(saleStatusMappings).forEach((key, index) => {
+        const container = document.createElement('div');
+        container.className = 'form-check';
+
+        const radioInput = document.createElement('input');
+        radioInput.type = 'radio';
+        radioInput.className = 'form-check-input';
+        radioInput.id = `status-${index}`;
+        radioInput.name = 'saleStatus';
+        radioInput.value = key;
+
+        const label = document.createElement('label');
+        label.className = 'form-check-label';
+        label.htmlFor = `status-${index}`;
+        label.textContent = saleStatusMappings[key];
+
+        container.appendChild(radioInput);
+        container.appendChild(label);
+        saleStatusOptions.appendChild(container);
+    });
+
+    // Показываем модальное окно
+    const saleStatusModal = new bootstrap.Modal(document.getElementById('saleStatusModal'));
+    saleStatusModal.show();
+
+    // Обработка отправки формы
+    document.getElementById('saleStatusForm').onsubmit = async function(event) {
+        event.preventDefault();
+        const selectedKey = document.querySelector('input[name="saleStatus"]:checked').value;
+        const saleStatusValue = saleStatusMappings[selectedKey];
+
+        try {
+            // Отправка нового статуса на сервер
+            const response = await fetch(`/games/${gameId}/sale-status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ saleStatus: saleStatusValue })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update the sale status');
+            }
+
+            // Обновление интерфейса и закрытие модального окна
+            window.location.reload();
+        } catch (error) {
+            console.error('Ошибка:', error);
+            alert('Ошибка обновления статуса продажи');
+        }
+    };
+}
+
     function showActivationCodesModal(gameId) {
         const game = gamesData[gameId];
 
@@ -1128,7 +1390,7 @@
                     <div class="mb-2">
                         * ${code}
                         <button class="btn btn-sm" onclick="copyCodeToClipboard('${code}')">&#x1F4CB;</button>
-                        <button class="btn btn-sm" onclick="deleteCode('${game._id}', '${code}', ${index})">&#x1F5D1;</button>
+                        <button class="btn btn-sm" onclick="showConfirmationModal('${game._id}', '${code}', ${index})">&#x1F5D1;</button>
                     </div>`;
             });
         } else {
@@ -1143,6 +1405,16 @@
         const modal = new bootstrap.Modal(document.getElementById('activationCodesModal'));
         modal.show();
 }
+
+    function showConfirmationModal(gameId, code, index) {
+    // Установка текста и обработчика клика для кнопки "Удалить"
+        document.getElementById('confirmationText').textContent = `Вы уверены, что хотите удалить код: ${code}?`;
+        document.getElementById('confirmDelete').onclick = () => deleteCode(gameId, code, index);
+
+        // Показ модального окна подтверждения
+        const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+        confirmationModal.show();
+    }
 
     function showUpdateCodesModal(gameId) {
         document.getElementById('updateGameIdField').value = gameId;
@@ -1500,7 +1772,6 @@
         // Отображаем модальное окно
         new bootstrap.Modal(document.getElementById('confirmDeleteActivationModal')).show();
     }
-
 
     function deleteActivation(gameId, activationType, clientIndex) {
         fetch(`/activation/${gameId}/${activationType}/${clientIndex}`, {
