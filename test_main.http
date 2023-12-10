@@ -80,7 +80,7 @@ Accept: application/json
 Content-Type: application/json
 
 ### Test add client info in activations
-POST http://127.0.0.1:8000/activation/65744017c68fcccb1ec10a6b/?activation_type=ps5ActivationP3
+POST http://127.0.0.1:8000/activation/65745606f157f908e6cfec34/?activation_type=ps4ActivationP3
 Accept: application/json
 Content-Type: application/json
 
@@ -97,7 +97,7 @@ Accept: application/json
 Content-Type: application/json
 
 ###Test update info in activations
-PUT http://127.0.0.1:8000/activation/656e2dc401dbeba57f836cf7/ps5ActivationP3/0
+PUT http://127.0.0.1:8000/activation/65745606f157f908e6cfec34/ps5ActivationP3/0
 Accept: application/json
 Content-Type: application/json
 
@@ -107,7 +107,7 @@ Content-Type: application/json
 }
 
 ###Test delete client info in activations
-DELETE http://127.0.0.1:8000/activation/656e2dc401dbeba57f836cf7/ps5ActivationP3/2
+DELETE http://127.0.0.1:8000/activation/65745606f157f908e6cfec34/ps5ActivationP3/0
 Accept: application/json
 Content-Type: application/json
 

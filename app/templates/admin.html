@@ -67,17 +67,29 @@
         .custom-modal-dialog .modal-content {
             margin-top: 100px; /* Дополнительный верхний отступ */
         }
-
+        
         .custom-modal .modal-content {
-            background-color: #e6f7ff; /* Светло-голубой фон */
+            background-color: #2c3e50; /* Rich navy blue background */
+            border: 1px solid #3498db; /* Bright blue border for a pop of color */
         }
+
         .custom-modal .modal-header,
         .custom-modal .modal-footer {
-            background-color: #cceeff; /* Немного темнее для заголовка и подвала */
+            background-color: #34495e; /* Slightly lighter shade of navy for header/footer */
+            border-bottom: 1px solid #2980b9; /* Bright blue border for separation */
         }
+
         .custom-modal .modal-body {
-            background-color: #f0faff; /* Немного светлее для основного содержимого */
+            background-color: #2c3e50; /* Consistent with the modal content background */
+            color: #ecf0f1; /* Soft off-white for text, providing high contrast */
         }
+
+        .custom-modal .modal-header .modal-title,
+        .custom-modal .modal-footer .btn {
+            color: #ecf0f1; /* Ensures text and buttons are also legible against the dark background */
+        }
+
+
     </style>
 </head>
 <body>
@@ -214,10 +226,6 @@
     </div>
 </div>
 
-
-
-
-
     <!-- Модальное окно для отображения информации об активациях -->
     <div id="activationInfoModal" class="modal fade" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
@@ -240,8 +248,46 @@
         </div>
     </div>
 
+    <!-- Модальное окно для добавления новой активации -->
+    <div id="addActivationModal" class="modal fade custom-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавление активации</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addActivationForm">
+                    <input type="hidden" id="activationTypeField" name="type">
+                    <input type="hidden" id="gameIdFieldForActivation" name="gameId">
+                    <div class="form-group">
+                        <label for="addActivationName">Имя</label>
+                        <input type="text" class="form-control" id="addActivationName" name="name">
+                    </div>
+                    <div class="form-group">
+                        <label for="addActivationEmail">Email</label>
+                        <input type="email" class="form-control" id="addActivationEmail" name="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="addActivationVkLink">Ссылка VK</label>
+                        <input type="text" class="form-control" id="addActivationVkLink" name="vkLink">
+                    </div>
+                    <div class="form-group">
+                        <label for="addActivationTgLink">Ссылка Telegram</label>
+                        <input type="text" class="form-control" id="addActivationTgLink" name="tgLink">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="submit" class="btn btn-primary" form="addActivationForm">Добавить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
     <!-- Модальное окно для редактирования активации -->
-    <div id="editActivationModal" class="modal fade" tabindex="-1" role="dialog">
+    <div id="editActivationModal" class="modal fade custom-modal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -251,7 +297,10 @@
                 </button>
             </div>
             <div class="modal-body">
-                <form id="editActivationForm">
+                <form id="editActivationForm" onsubmit="submitEditActivationForm(event)">
+                    <input type="hidden" id="gameIdFieldActivationEdit" name="gameId">
+                    <input type="hidden" id="activationTypeFieldEdit" name="activationType">
+                    <input type="hidden" id="clientIndexFieldEdit" name="clientIndex">
                     <!-- Имя -->
                     <div class="form-group">
                         <label for="editActivationName">Имя</label>
@@ -282,9 +331,24 @@
     </div>
 </div>
 
-
-
-
+    <!-- Модальное окно подтверждения удаления активации -->
+    <div id="confirmDeleteActivationModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Подтверждение удаления</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Вы уверены, что хотите удалить эту активацию?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteActivationButton">Удалить</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Модальное окно для добавления новой игры -->
     <div id="addGameModal" class="modal fade" tabindex="-1" role="dialog">
@@ -1138,33 +1202,87 @@
 };
 
     function showActivationInfoModal(gameId) {
-        const game = gamesData[gameId];
-        let activationInfoHtml = '';
+    const game = gamesData[gameId];
+    let activationInfoHtml = '';
 
-        if (game.activationInfo) {
-            for (const key in game.activationInfo) {
-                const title = activationTitles[key] || key; // Используйте словарь для получения русского названия
-                activationInfoHtml += `<h5>${title}</h5><div class="activation-info">`;
-                game.activationInfo[key].forEach((info, index) => {
-                    activationInfoHtml += `
-                        <div class="activation-record">
-                            <span>Name: ${info.name || 'N/A'}</span><br>
-                            <span>Email: ${info.email || 'N/A'}</span><br>
-                            <span>VK: ${info.vkLink || 'N/A'}</span><br>
-                            <span>Telegram: ${info.tgLink || 'N/A'}</span>
-                            <button class="btn btn-sm" onclick="editActivation('${game._id}', '${key}', ${index})">&#x270F;</button>
-                            <button class="btn btn-sm" onclick="deleteActivation('${game._id}', '${key}', ${index})">&#x1F5D1;</button>
-                        </div>
-                        <hr>`;
-                });
-                activationInfoHtml += `</div>`;
-            }
-        } else {
-            activationInfoHtml = 'Информация об активации отсутствует';
+    // Проверяем, есть ли информация об активации
+    if (game.activationInfo && Object.keys(game.activationInfo).length > 0) {
+        for (const key in game.activationInfo) {
+            const title = activationTitles[key] || key;
+            activationInfoHtml += `<h5>${title}</h5><div class="activation-info">`;
+            game.activationInfo[key].forEach((info, index) => {
+                activationInfoHtml += `
+                    <div class="activation-record">
+                        <span>Name: ${info.name || 'N/A'}</span><br>
+                        <span>Email: ${info.email || 'N/A'}</span><br>
+                        <span>VK: ${info.vkLink || 'N/A'}</span><br>
+                        <span>Telegram: ${info.tgLink || 'N/A'}</span>
+                        <button class="btn btn-sm" onclick="editActivation('${game._id}', '${key}', ${index})">&#x270F;</button>
+                        <button class="btn btn-sm" onclick="showConfirmDeleteActivationModal('${game._id}', '${key}', ${index})">&#x1F5D1;</button>
+                    </div>`;
+            });
+            activationInfoHtml += `</div>`;
+            // Добавляем кнопку "Добавить еще одну активацию" после каждой активации
+            activationInfoHtml += `<button class="btn btn-sm btn-primary" onclick="showAddActivationModal('${key}', '${game._id}')">Добавить активацию</button><hr>`;
         }
+    } else {
+        activationInfoHtml = 'Информация об активации отсутствует';
+        // Добавляем кнопки для каждого типа активации
+        Object.keys(activationTitles).forEach(key => {
+            activationInfoHtml += `
+                <h5>${activationTitles[key]}</h5>
+                <button class="btn btn-sm btn-primary" onclick="showAddActivationModal('${key}', '${game._id}')">Добавить активацию</button><hr>`;
+        });
+    }
 
-        document.getElementById('activationInfoContainer').innerHTML = activationInfoHtml;
-        new bootstrap.Modal(document.getElementById('activationInfoModal')).show();
+    document.getElementById('activationInfoContainer').innerHTML = activationInfoHtml;
+    new bootstrap.Modal(document.getElementById('activationInfoModal')).show();
+}
+
+    function showAddActivationModal(type, gameId) {
+        document.getElementById('addActivationForm').reset(); // Сброс формы
+        document.getElementById('activationTypeField').value = type; // Установка типа активации
+        document.getElementById('gameIdFieldForActivation').value = gameId; // Установка gameId
+
+        // Привязываем функцию к форме
+        document.getElementById('addActivationForm').addEventListener('submit', submitAddActivationForm);
+
+        new bootstrap.Modal(document.getElementById('addActivationModal')).show();
+    }
+
+    async function submitAddActivationForm(event) {
+        event.preventDefault(); // Предотвращаем стандартную отправку формы
+
+        // Получаем значения из формы
+        const gameId = document.getElementById('gameIdFieldForActivation').value;
+        const activationType = document.getElementById('activationTypeField').value;
+        const clientInfo = {
+            name: document.getElementById('addActivationName').value,
+            email: document.getElementById('addActivationEmail').value,
+            vkLink: document.getElementById('addActivationVkLink').value,
+            tgLink: document.getElementById('addActivationTgLink').value
+        };
+
+        // Отправляем запрос на сервер
+        try {
+            const response = await fetch(`/activation/${gameId}?activation_type=${activationType}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(clientInfo)
+            });
+
+            if (response.ok) {
+                console.log('Client added successfully');
+                $('#addActivationModal').modal('hide'); // Закрываем модальное окно
+                window.location.reload(); // Обновляем страницу
+            } else {
+                console.error('Ошибка при добавлении активации:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Ошибка при отправке запроса:', error);
+        }
 }
 
     function editActivation(gameId, activationKey, index) {
@@ -1177,15 +1295,92 @@
         document.getElementById('editActivationVkLink').value = activation.vkLink || '';
         document.getElementById('editActivationTgLink').value = activation.tgLink || '';
 
+
+
         // Сохранение информации об ID игры, ключе активации и индексе для дальнейшего обновления
-        const form = document.getElementById('editActivationForm');
-        form.dataset.gameId = gameId;
-        form.dataset.activationKey = activationKey;
-        form.dataset.index = index;
+        document.getElementById('gameIdFieldActivationEdit').value = gameId;
+        document.getElementById('activationTypeFieldEdit').value = activationKey;
+        document.getElementById('clientIndexFieldEdit').value = index;
 
         // Показ модального окна для редактирования
         new bootstrap.Modal(document.getElementById('editActivationModal')).show();
 }
+
+    function submitEditActivationForm(event) {
+        event.preventDefault(); // Предотвращаем стандартную отправку формы
+
+        // Получение значений из формы
+        const gameId = document.getElementById('gameIdFieldActivationEdit').value;
+        const activationType = document.getElementById('activationTypeFieldEdit').value;
+        const clientIndex = document.getElementById('clientIndexFieldEdit').value;
+        const clientInfo = {
+            name: document.getElementById('editActivationName').value,
+            email: document.getElementById('editActivationEmail').value,
+            vkLink: document.getElementById('editActivationVkLink').value,
+            tgLink: document.getElementById('editActivationTgLink').value
+        };
+
+        // Отправка запроса на обновление информации о клиенте
+        fetch(`/activation/${gameId}/${activationType}/${clientIndex}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(clientInfo)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка сервера: ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Success:', data);
+            // Закрыть модальное окно после успешного обновления
+            $('#editActivationModal').modal('hide');
+            // Можно обновить страницу или обновить отображаемые данные
+            window.location.reload(); // или другой способ обновления данных на странице
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+
+    let deleteActivationData = {}; // Глобальная переменная для хранения данных об активации
+
+    function showConfirmDeleteActivationModal(gameId, activationType, clientIndex) {
+        // Сохраняем данные об активации для удаления
+        deleteActivationData = { gameId, activationType, clientIndex };
+
+        document.getElementById('confirmDeleteActivationButton').addEventListener('click', function() {
+        // Функция для удаления активации
+        deleteActivation(deleteActivationData.gameId, deleteActivationData.activationType, deleteActivationData.clientIndex);
+    });
+        // Отображаем модальное окно
+        new bootstrap.Modal(document.getElementById('confirmDeleteActivationModal')).show();
+    }
+
+
+    function deleteActivation(gameId, activationType, clientIndex) {
+        fetch(`/activation/${gameId}/${activationType}/${clientIndex}`, {
+            method: 'DELETE'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка сервера: ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Success:', data);
+            // Закрыть модальное окно подтверждения
+            $('#confirmDeleteActivationModal').modal('hide');
+            window.location.reload(); // Обновить страницу
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
 
     function showAllGames() {
         document.getElementById('searchGameName').value = ''; // Очистка поля поиска
