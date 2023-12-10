@@ -20,7 +20,7 @@ class GameService:
         return await game_repository.add_game(game_data)
 
     @staticmethod
-    async def get_games(skip: int = 0, limit: int = 10):
+    async def get_games(skip: int, limit: int):
         """Метод получения списка игр"""
         games = await game_repository.get_games(skip, limit)
         return [GameOut(**game) for game in games]

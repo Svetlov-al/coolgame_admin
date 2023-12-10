@@ -16,7 +16,7 @@ class GameRepository:
         result = await self.collection.insert_one(game_data)
         return str(result.inserted_id)
 
-    async def get_games(self, skip: int = 0, limit: int = 10):
+    async def get_games(self, skip: int, limit: int):
         """Метод получения списка игр"""
         return await self.collection.find().skip(skip).limit(limit).to_list(length=limit)
 

@@ -17,8 +17,10 @@ router = APIRouter(
             status_code=status.HTTP_200_OK,
             description="Получение списка игр"
             )
-async def get_games(skip: int = 0, limit: int = 10):
-    return await game_service.get_games(skip, limit)
+async def get_games(skip: int = 0, limit: int = 50):
+    games = await game_service.get_games(skip, limit)
+    print(len(games))
+    return games
 
 
 @router.get("/find_game",
@@ -43,8 +45,6 @@ async def search_games(query: str = Query(None)):
         return games
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Games not found")
-
-
 
 
 @router.post("/",

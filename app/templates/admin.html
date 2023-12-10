@@ -650,26 +650,28 @@
         <button onclick="addGameForm()" class="btn btn-success mb-4">Добавить запись</button>
 
         <!-- Список игр -->
-            <div id="gamesList" class="mt-4">
-                <div id="notification" class="notification"></div>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th scope="col">Номер аккаунта</th>
-                            <th scope="col">Название</th>
-                            <th scope="col">Дата покупки</th>
-                            <th scope="col">Email Аккаунт</th>
-                            <th scope="col">Аккаунт PSN</th>
-                            <th scope="col">Коды активаций</th>
-                            <th scope="col">Информация активаций</th>
-                            <th scope="col">Действия</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Записи игр будут добавлены здесь -->
-                    </tbody>
-                </table>
-            </div>
+        <div id="gamesList" class="mt-4">
+            <div id="notification" class="notification"></div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Номер аккаунта</th>
+                        <th scope="col">Название</th>
+<!--                        <th scope="col">Статус</th>-->
+                        <th scope="col">Дата покупки</th>
+                        <th scope="col">Email Аккаунт</th>
+                        <th scope="col">Аккаунт PSN</th>
+                        <th scope="col">Коды активаций</th>
+                        <th scope="col">Информация активаций</th>
+                        <th scope="col">Комментарий</th>
+                        <th scope="col">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Записи игр будут добавлены здесь -->
+                </tbody>
+            </table>
+        </div>
 
         <!-- Контейнер для результатов поиска -->
         <div id="searchResults" class="search-results"></div>
@@ -695,7 +697,7 @@
     let rentalPrice = null;
     let rentalDate = null;
 
-    async function loadGames(skip = 0, limit = 10) {
+    async function loadGames(skip = 0, limit = 100) {
         try {
             const response = await fetch(`/games/?skip=${skip}&limit=${limit}`);
             if (!response.ok) {
@@ -733,6 +735,7 @@
             psnAccountContent = `<button class="btn btn-sm btn-outline-primary" onclick="showPsnModal('${psnAccountId}')">Добавить PSN</button>`;
         }
 
+        // Формирование содержимого для Email аккаунта и сохранение данных в emailAccountsData
         const emailAccount = game.emailAccount ? game.emailAccount : {};
         const emailAccountId = `email-${game._id}`;
         emailAccountsData[emailAccountId] = emailAccount;
@@ -744,27 +747,58 @@
             emailAccountContent = `<button class="btn btn-sm btn-outline-primary" onclick="showEmailModal('${emailAccountId}')">Добавить Email</button>`;
         }
 
-        // Формирование кнопки для отображения кодов активации и информации об активациях
-        let activationCodesButton = `<button class="btn btn-sm btn-outline-primary" type="button" onclick="showActivationCodesModal('${game._id}')">Коды</button>`;
-        let activationInfoButton = `<button class="btn btn-sm btn-outline-primary" type="button" onclick="showActivationInfoModal('${game._id}')">Информация об активации</button>`;
+        // Формирование кнопок для кодов активации и информации об активациях
+        const activationCodesButton = `<button class="btn btn-sm btn-outline-primary" onclick="showActivationCodesModal('${game._id}')">Коды</button>`;
+        const activationInfoButton = `<button class="btn btn-sm btn-outline-primary" onclick="showActivationInfoModal('${game._id}')">Информация об активации</button>`;
 
+         // Формирование строки таблицы
         gameRow.innerHTML = `
             <td>${game.account_number}</td>
             <td><a href="#" class="game-link" onclick="editGame('${game._id}')">${game.gameName}</a></td>
             <td>${game.purchaseDate}</td>
             <td>${emailAccountContent}</td>
-            <td>
-                ${psnAccountContent}
-                <button onclick="showUpdatePsnPasswordModal('${game._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-key"></i></button>
-                <button onclick="showAccessInfoModal('${game._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-info-circle"></i></button>
-            </td>
+            <td>${psnAccountContent}</td>
             <td>${activationCodesButton}</td>
             <td>${activationInfoButton}</td>
+            <td></td>
             <td>
-                <button onclick="editGame('${game._id}')" class="btn btn-sm btn-outline-secondary ml-2"><i class="fas fa-edit"></i></button>
+                <button onclick="editGame('${game._id}')" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button>
                 <button onclick="showDeleteConfirmation('${game._id}')" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash-alt"></i></button>
             </td>
         `;
+
+        // Создание элемента для комментария
+        const commentCell = gameRow.cells[7];
+        const commentDiv = document.createElement('div');
+        commentDiv.className = 'comment-editable';
+        commentDiv.setAttribute('contenteditable', 'true');
+        commentDiv.setAttribute('data-placeholder', 'Добавить комментарий');
+        commentDiv.textContent = game.comment || '';
+        commentDiv.setAttribute('data-game-id', game._id);
+        const originalComment = commentDiv.textContent; // Сохранение первоначального комментария
+
+        // Создание кнопки для подтверждения изменений
+        const confirmButton = document.createElement('button');
+        confirmButton.innerHTML = '<i class="fas fa-check"></i>'; // Использование иконки Font Awesome
+        confirmButton.className = 'confirm-button';
+        confirmButton.style.display = 'none'; // Изначально кнопка скрыта
+        confirmButton.style.background = 'none'; // Прозрачный фон
+        confirmButton.style.border = 'none'; // Убрать границу
+        confirmButton.style.padding = '0'; // Убрать отступы
+        confirmButton.style.cursor = 'pointer'; // Стиль курсора при наведении
+
+        confirmButton.onclick = () => submitComment(commentDiv, confirmButton);
+
+        commentDiv.addEventListener('input', () => {
+            // Показываем кнопку только если комментарий изменен
+            if (commentDiv.textContent !== originalComment) {
+                confirmButton.style.display = 'inline';
+            } else {
+                confirmButton.style.display = 'none';
+            }
+        });
+        commentCell.appendChild(commentDiv);
+        commentCell.appendChild(confirmButton);
 
         gamesList.appendChild(gameRow);
     });
@@ -1605,6 +1639,37 @@
             showNotification('Информация скопирована');
         });
 }
+
+    // Функция для отправки комментария
+    function submitComment(div, button) {
+        const gameId = div.getAttribute('data-game-id');
+        const newComment = div.textContent || '';
+
+        fetch(`/games/${gameId}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({comment: newComment})
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка при обновлении комментария');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Комментарий успешно обновлен:', data);
+            window.location.reload();
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            div.textContent = '';
+            div.setAttribute('data-placeholder', 'Добавить комментарий');
+        })
+        .finally(() => {
+            // Скрываем кнопку после отправки или ошибки
+            button.style.display = 'none';
+        });
+    }
 
     function showNotification(message) {
         const notification = document.getElementById('notification');
