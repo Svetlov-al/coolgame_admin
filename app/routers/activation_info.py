@@ -29,9 +29,6 @@ async def add_client_to_activation(game_id: str, client_info: ClientInfo, activa
 
 @router.put("/{game_id}/{activation_type}/{client_index}")
 async def update_client_info(game_id: str, activation_type: str, client_index: int, client_update: ClientUpdate):
-    print(activation_type)
-    print(client_index)
-    print(client_update)
     success = await activation_service.update_client_info(game_id, activation_type, client_index, client_update)
     if not success:
         raise HTTPException(status_code=404, detail="Client not found or update failed")

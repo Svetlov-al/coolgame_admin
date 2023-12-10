@@ -20,10 +20,46 @@ class GameRepository:
         """Метод получения списка игр"""
         return await self.collection.find().skip(skip).limit(limit).to_list(length=limit)
 
-    async def get_game_by_name(self, game_name: str) -> dict:
+    async def get_game_by_name(self, game_name: str) -> list[dict]:
         """Метод поиска игры по названию"""
         regex = re.compile(game_name, re.IGNORECASE)
-        return await self.collection.find_one({'gameName': regex})
+        games = await self.collection.find({'gameName': regex}).to_list(None)
+        return games
+
+    async def search_games(self, search_query: str) -> list[dict]:
+        """Метод поиска игр по разным полям"""
+        regex = re.compile(search_query, re.IGNORECASE)
+        query = {
+            "$or": [
+                {"gameName": regex},
+                {"transactionNumber": regex},
+                {"purchaseDate": {"$regex": search_query}},
+                {"lastDeactivationDate": {"$regex": search_query}},
+                {"additionalInfo": regex},
+                {"saleStatus": regex},
+                {"psnAccount.name": regex},
+                {"psnAccount.networkID": regex},
+                {"emailAccount.email": regex},
+                {"activationInfo.ps4ActivationP1.name": regex},
+                {"activationInfo.ps4ActivationP1.email": regex},
+                {"activationInfo.ps4ActivationP1.vkLink": regex},
+                {"activationInfo.ps4ActivationP1.tgLink": regex},
+                {"activationInfo.ps5ActivationP1.name": regex},
+                {"activationInfo.ps5ActivationP1.email": regex},
+                {"activationInfo.ps5ActivationP1.vkLink": regex},
+                {"activationInfo.ps5ActivationP1.tgLink": regex},
+                {"activationInfo.ps4ActivationP3.name": regex},
+                {"activationInfo.ps4ActivationP3.email": regex},
+                {"activationInfo.ps4ActivationP3.vkLink": regex},
+                {"activationInfo.ps4ActivationP3.tgLink": regex},
+                {"activationInfo.ps5ActivationP3.name": regex},
+                {"activationInfo.ps5ActivationP3.email": regex},
+                {"activationInfo.ps5ActivationP3.vkLink": regex},
+                {"activationInfo.ps5ActivationP3.tgLink": regex},
+            ]
+        }
+        games = await self.collection.find(query).to_list(None)
+        return games
 
     async def get_game_by_id(self, game_id: str) -> dict:
         """Метод поиска игры по ID"""

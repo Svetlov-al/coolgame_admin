@@ -137,7 +137,7 @@ class GameOut(Game):
     psnAccount: Optional[PSNAccount] = None
     emailAccount: Optional[EmailAccount] = None
     activationCodes: Optional[List[str]] = []
-    activationInfo: Optional[ActivationInfo] = []
+    activationInfo: Optional[ActivationInfo] = None
     rentalInfo: Optional[RentalInfo] = None
     saleStatus: Optional[SaleStatus] = None
 

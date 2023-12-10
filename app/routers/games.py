@@ -22,16 +22,29 @@ async def get_games(skip: int = 0, limit: int = 10):
 
 
 @router.get("/find_game",
-            response_model=schemas.GameOut,
+            response_model=list[schemas.GameOut],
             status_code=status.HTTP_200_OK,
-            description="Поиск игры по названию"
-            )
+            description="Поиск игры по названию")
 async def find_game(gamename: str = Query(None)):
-    game = await game_service.find_game(game_name=gamename)
-    if game:
-        return game
+    games = await game_service.find_game(game_name=gamename)
+    if games:
+        return games
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Game not found")
+
+
+@router.get("/search_games",
+            response_model=list[schemas.GameOut],
+            status_code=status.HTTP_200_OK,
+            description="Поиск игры по разным полям")
+async def search_games(query: str = Query(None)):
+    games = await game_service.search_games(search_query=query)
+    if games:
+        return games
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Games not found")
+
+
 
 
 @router.post("/",
