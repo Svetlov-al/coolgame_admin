@@ -22,11 +22,10 @@ async def get_psn_account(game_id: str):
 
 @router.post("/{game_id}",
              status_code=status.HTTP_201_CREATED,
-             description="Добавление PSN аккаунта в игру"
-             )
+             description="Добавление PSN аккаунта в игру",
+             response_model=schemas.GameOut)
 async def add_psn_account(game_id: str, psn_account: schemas.PSNAccount):
-    new_psn_account_id = await psn_service.add_psn_account(game_id, psn_account)
-    return {"message": "PSN account added successfully"}
+    return await psn_service.add_psn_account(game_id, psn_account)
 
 
 @router.put("/{game_id}",

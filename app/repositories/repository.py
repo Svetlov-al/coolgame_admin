@@ -11,10 +11,11 @@ class GameRepository:
     def __init__(self, collection):
         self.collection = collection
 
-    async def add_game(self, game_data: dict) -> str:
+    async def add_game(self, game_data: dict):
         """Метод добавления игры в базу данных"""
         result = await self.collection.insert_one(game_data)
-        return str(result.inserted_id)
+        created_game = await self.collection.find_one(result.inserted_id)
+        return created_game
 
     async def get_games(self, skip: int, limit: int):
         """Метод получения списка игр"""
@@ -266,6 +267,8 @@ class PSNAccountRepository:
         )
         if update_result.modified_count == 0:
             raise HTTPException(status_code=404, detail="Game not found or psn account not added")
+        updated_game = await self.collection.find_one({'_id': ObjectId(game_id)})
+        return updated_game
 
     async def update_psn_account(self, game_id: str, psn_account: schemas.PSNAccountOut):
         update_data = {f'psnAccount.{k}': v for k, v in psn_account.model_dump(exclude_unset=True).items()}

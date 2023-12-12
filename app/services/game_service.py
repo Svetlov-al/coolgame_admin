@@ -14,9 +14,8 @@ class GameService:
     """Класс сервиснгого слоя для работы с играми"""
 
     @staticmethod
-    async def add_game(game_data: dict) -> str:
+    async def add_game(game_data: dict):
         """Метод добавления игры в базу данных"""
-
         return await game_repository.add_game(game_data)
 
     @staticmethod

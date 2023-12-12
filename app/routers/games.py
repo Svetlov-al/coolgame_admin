@@ -48,10 +48,12 @@ async def search_games(query: str = Query(None), skip: int = 0, limit: int = 50)
 
 @router.post("/",
              status_code=status.HTTP_201_CREATED,
-             description="Добавление игры")
+             description="Добавление игры",
+             response_model=schemas.GameOut)
 async def add_game(game: schemas.Game):
-    new_game_id = await game_service.add_game(game_data=game.model_dump())
-    return JSONResponse(status_code=status.HTTP_201_CREATED, content={"id": new_game_id})
+    new_game = await game_service.add_game(game_data=game.model_dump())
+    print(new_game)
+    return new_game
 
 
 @router.get("/{game_id}", response_model=schemas.GameOut)
@@ -75,7 +77,6 @@ async def update_game(game_id: str, game_update: schemas.GameUpdate):
     updated_game = await game_service.update_game(game_id, update_data)
     if not updated_game:
         raise HTTPException(status_code=404, detail="Game not found")
-    print(updated_game)
     return updated_game
 
 
