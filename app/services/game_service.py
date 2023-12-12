@@ -33,7 +33,8 @@ class GameService:
     @staticmethod
     async def search_games(search_query: str, skip: int, limit: int):
         """Метод поиска игр по разным полям"""
-        return await game_repository.search_games(search_query, skip, limit)
+        games = await game_repository.search_games(search_query, skip, limit)
+        return (GameOut(**game) for game in games)
 
     @staticmethod
     async def find_game_by_id(game_id: str) -> Optional[GameOut]:

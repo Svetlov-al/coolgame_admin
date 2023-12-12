@@ -71,7 +71,7 @@ class GameRepository:
         if not update_fields:
             return False
         result = await self.collection.update_one(query, {'$set': update_fields})
-        return True
+        return result
 
     async def update_sale_status(self, game_id: str, sale_status: SaleStatus) -> bool:
         update_data = {'saleStatus': sale_status.value}

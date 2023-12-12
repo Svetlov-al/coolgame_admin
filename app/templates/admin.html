@@ -90,23 +90,46 @@
         }
 
         .comment-editable {
-            min-height: 30px; /* Минимальная высота по умолчанию */
-            width: 100%; /* Ширина поля во всю доступную ширину ячейки */
-            border: 1px solid #ccc; /* Граница поля */
-            padding: 5px; /* Отступы внутри поля */
-            /* Добавьте сюда любые другие стили, которые вы хотите применить */
+            font-size: 0.75em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            min-width: 100px;
+            max-height: 30px; /* Начальная высота */
+            transition: max-height 0.5s ease-in-out, box-shadow 0.5s ease-in-out; /* Анимация изменения высоты и тени */
+            border: 1px solid #ddd; /* Легкая граница для видимости */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Тень для эффекта всплытия */
+            padding: 5px; /* Небольшой отступ внутри */
+            margin-bottom: 10px; /* Отступ снизу */
         }
 
+        .comment-editable.expanded {
+            white-space: normal;
+            overflow: auto; /* Добавляем скролл для длинных комментариев */
+            text-overflow: clip;
+            cursor: auto;
+            max-height: 150px; /* Меньшее значение max-height */
+            min-height: 30px; /* Минимальная высота, соответствующая начальной высоте */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+
         .comment-editable:focus {
-            min-height: 80px; /* Увеличиваем высоту поля при фокусе */
             outline: none; /* Убираем стандартный outline при фокусе */
-            border-color: #007bff; /* Меняем цвет границы при фокусе */
+            border-color: #007bff; /* Акцентная граница при фокусе */
+            box-shadow: 0 0 10px #007bff; /* Светящаяся тень для акцентирования фокуса */
         }
         .comments-cell {
-            max-width: 200px; /* Пример максимальной ширины */
+            max-width: 150px; /* Пример максимальной ширины */
+            max-height: 30px;
             word-wrap: break-word;
             overflow-wrap: break-word;
         }
+        #loadingMarker {
+            min-height: 1px;
+            visibility: hidden;
+}
 
     </style>
 </head>
@@ -662,29 +685,6 @@
         </div>
     </div>
 
-    <!--    &lt;!&ndash; Модальное окно для изменения статуса продажи &ndash;&gt;-->
-    <!--    <div class="modal" id="saleStatusModal" tabindex="-1">-->
-    <!--      <div class="modal-dialog">-->
-    <!--        <div class="modal-content">-->
-    <!--          <form id="saleStatusForm">-->
-    <!--            <div class="modal-header">-->
-    <!--              <h5 class="modal-title">Изменение статуса продажи</h5>-->
-    <!--              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>-->
-    <!--            </div>-->
-    <!--            <div class="modal-body">-->
-    <!--              <select class="form-select" id="saleStatusSelect">-->
-    <!--                &lt;!&ndash; Опции статуса продажи здесь &ndash;&gt;-->
-    <!--              </select>-->
-    <!--            </div>-->
-    <!--            <div class="modal-footer">-->
-    <!--              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>-->
-    <!--              <button type="submit" class="btn btn-primary">Сохранить</button>-->
-    <!--            </div>-->
-    <!--          </form>-->
-    <!--        </div>-->
-    <!--      </div>-->
-    <!--    </div>-->
-
     <!-- Модальное окно для изменения статуса продажи -->
     <div class="modal custom-modal" id="saleStatusModal" tabindex="-1">
       <div class="modal-dialog">
@@ -743,6 +743,7 @@
                 <tbody>
                     <!-- Записи игр будут добавлены здесь -->
                 </tbody>
+                <div id="loadingMarker"></div>
             </table>
         </div>
 
@@ -758,7 +759,47 @@
 
     document.addEventListener('DOMContentLoaded', async function () {
         await loadGames(); // Загрузка игр при инициализации страницы
+        createObserver();
     });
+
+    // Функция для создания Intersection Observer
+    function createObserver() {
+        let observer;
+        let options = {
+            root: null, // относительно вьюпорта
+            rootMargin: "0px",
+            threshold: 1.0
+        };
+
+        observer = new IntersectionObserver(handleIntersect, options);
+
+        const targetElement = document.querySelector("#loadingMarker"); // Убедитесь, что это правильный селектор
+        if (targetElement) { // Проверка, что элемент существует
+            observer.observe(targetElement);
+        } else {
+            console.error("Target element not found for IntersectionObserver");
+        }
+}
+
+    // Обработчик пересечений
+    async function handleIntersect(entries, observer) {
+        for (const entry of entries) {
+            if (entry.isIntersecting && !isLoading && !isSearchLoading && !endOfDataReached) {
+                // Здесь ваш код для загрузки данных
+                if (isSearching) {
+                    isSearchLoading = true;
+                    await performSearch(searchInput.value, searchSkip, searchLimit).then(() => {
+                        isSearchLoading = false;
+                    });
+                } else {
+                    isLoading = true;
+                    await loadGames(currentSkip, limit).then(() => {
+                        isLoading = false;
+                    });
+                }
+            }
+        }
+    }
 
     var gamesData = {}; // Глобальный объект для хранения данных игр
 
@@ -767,10 +808,10 @@
 
 
     let currentSkip = 0;
-    const limit = 20;
+    const limit = 30;
 
     let searchSkip = 0;
-    const searchLimit = 20;
+    const searchLimit = 30;
 
 
     let endOfDataReached = false;
@@ -786,7 +827,7 @@
         }
 
         scrollTimeout = setTimeout(async () => {
-            if (!isLoading && !isSearchLoading && (window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100 && !endOfDataReached) {
+            if (!isLoading && !isSearchLoading && (window.innerHeight + window.scrollY) >= document.body.offsetHeight - 200 && !endOfDataReached) {
                 if (isSearching) {
                     isSearchLoading = true;
                     await performSearch(searchInput.value, searchSkip, searchLimit);
@@ -800,7 +841,7 @@
         }, 200); // Задержка в 200 мс
     });
 
-    async function loadGames(skip = 0, limit = 10) {
+    async function loadGames(skip = 0, limit = 20) {
         if (endOfDataReached) return;
         try {
             const response = await fetch(`/games/?skip=${skip}&limit=${limit}`);
@@ -1110,7 +1151,7 @@
     }
 }
 
-    async function performSearch(input, skip = 0, limit = 10) {
+    async function performSearch(input, skip = 0, limit = 20) {
     if (input.trim().length === 0) {
         isSearching = false;
         endOfDataReached = false;
@@ -1163,7 +1204,7 @@
                 isSearching = false;
                 currentSkip = 0;
                 await loadGames();
-                window.location.reload();
+                // window.location.reload();
             } else if (inputValue.length >= 4 && inputValue !== previousSearch) {
                 previousSearch = inputValue;
                 isSearching = true;
@@ -1172,7 +1213,6 @@
             }
         }, 1000);
     });
-
 
     async function findGame() {
     const searchGameName = document.getElementById('searchGameName').value;
@@ -1246,7 +1286,7 @@
 
         // Закрыть модальное окно и обновить страницу/список игр
         $('#addGameModal').modal('hide');
-        window.location.reload(); // Перезагрузить страницу
+        // window.location.reload(); // Перезагрузить страницу
 
     } catch (error) {
         console.error('Ошибка:', error);
@@ -1381,7 +1421,7 @@
             // Закрываем модальное окно после успешного обновления
             const gameEditModal = bootstrap.Modal.getInstance(document.getElementById('gameEditModal'));
             gameEditModal.hide();
-            window.location.reload();
+            // window.location.reload();
         } catch (error) {
             console.error('Ошибка:', error);
             alert('Ошибка обновления игры');
@@ -1389,6 +1429,9 @@
     });
 
     function showSaleStatusModal(gameId) {
+    const game = gamesData[gameId]; // Предполагается, что gamesData - это ваш объект данных
+    const currentSaleStatusKey = reverseSaleStatusMappings[game.saleStatus]; // Получаем ключ статуса продажи
+
     const saleStatusOptions = document.getElementById('saleStatusOptions');
     saleStatusOptions.innerHTML = '';
 
@@ -1403,6 +1446,11 @@
         radioInput.id = `status-${index}`;
         radioInput.name = 'saleStatus';
         radioInput.value = key;
+
+        // Устанавливаем радиокнопку как выбранную, если ключ статуса совпадает с текущим
+        if (key === currentSaleStatusKey) {
+            radioInput.checked = true;
+        }
 
         const label = document.createElement('label');
         label.className = 'form-check-label';
@@ -1437,7 +1485,7 @@
             }
 
             // Обновление интерфейса и закрытие модального окна
-            window.location.reload();
+            // window.location.reload();
         } catch (error) {
             console.error('Ошибка:', error);
             alert('Ошибка обновления статуса продажи');
@@ -1513,7 +1561,7 @@
             // Закрытие обоих модальных окон после успешного обновления данных
             $('#updateCodesModal').modal('hide');
             $('#activationCodesModal').modal('hide');
-            window.location.reload(); // Перезагрузить страницу
+            // window.location.reload(); // Перезагрузить страницу
         })
         .catch((error) => {
             console.error('Error:', error);
@@ -1545,7 +1593,7 @@
         })
         .then(data => {
             showNotification(`Код ${code} удален!`);
-            window.location.reload(); // Перезагрузить страницу
+            // window.location.reload(); // Перезагрузить страницу
         })
         .catch(error => {
             console.error('Ошибка при удалении кода:', error);
@@ -1609,7 +1657,7 @@
                 if (response.ok) {
                   console.log($('#psnModal'));
                     $('#psnModal').modal('hide'); // Закрыть модальное окно
-                    window.location.reload(); // Перезагрузить страницу
+                    // window.location.reload(); // Перезагрузить страницу
                 } else {
                   console.error('Ошибка при обновлении данных: ', response.statusText);
                 }
@@ -1665,7 +1713,7 @@
         .then(data => {
             console.log('Success:', data);
             $('#emailModal').modal('hide'); // Закрыть модальное окно после успешного обновления
-            window.location.reload(); // Перезагрузить страницу, если нужно
+            // window.location.reload(); // Перезагрузить страницу, если нужно
         })
         .catch((error) => {
             console.error('Error:', error);
@@ -1754,7 +1802,7 @@
             if (response.ok) {
                 console.log('Client added successfully');
                 $('#addActivationModal').modal('hide'); // Закрываем модальное окно
-                window.location.reload(); // Обновляем страницу
+                // window.location.reload(); // Обновляем страницу
             } else {
                 console.error('Ошибка при добавлении активации:', response.statusText);
             }
@@ -1817,7 +1865,7 @@
             // Закрыть модальное окно после успешного обновления
             $('#editActivationModal').modal('hide');
             // Можно обновить страницу или обновить отображаемые данные
-            window.location.reload(); // или другой способ обновления данных на странице
+            // window.location.reload(); // или другой способ обновления данных на странице
         })
         .catch(error => {
             console.error('Error:', error);
@@ -1852,7 +1900,7 @@
             console.log('Success:', data);
             // Закрыть модальное окно подтверждения
             $('#confirmDeleteActivationModal').modal('hide');
-            window.location.reload(); // Обновить страницу
+            // window.location.reload(); // Обновить страницу
         })
         .catch(error => {
             console.error('Error:', error);
@@ -1891,17 +1939,17 @@
 });
 
     document.getElementById('editRentalDataButton').addEventListener('click', function() {
-    const gameId = document.getElementById('editGameIdField').value;
-    const game = gamesData[gameId];
-    fillRentalDataModal(game);
+        const gameId = document.getElementById('editGameIdField').value;
+        const game = gamesData[gameId];
+        fillRentalDataModal(game);
 
     // Показать модальное окно с данными аренды
     new bootstrap.Modal(document.getElementById('rentalDataModal')).show();
 });
 
     function fillRentalDataModal(game) {
-    document.getElementById('rentalPrice').value = game.rentalInfo.rentalPrice || '';
-    document.getElementById('rentalDate').value = game.rentalInfo.rentalDate || '';
+        document.getElementById('rentalPrice').value = game.rentalInfo.rentalPrice || '';
+        document.getElementById('rentalDate').value = game.rentalInfo.rentalDate || '';
 }
 
     function showAccessInfoModal(gameId) {
@@ -1956,7 +2004,7 @@
 
             if (response.ok) {
                 $('#updatePsnPasswordModal').modal('hide'); // Закрыть модальное окно
-                window.location.reload(); // Перезагрузить страницу
+                // window.location.reload(); // Перезагрузить страницу
             } else {
                 console.error('Ошибка при обновлении пароля: ', response.statusText);
             }
@@ -2000,7 +2048,7 @@
         })
         .then(data => {
             console.log('Комментарий успешно обновлен:', data);
-            window.location.reload();
+            // window.location.reload();
         })
         .catch(error => {
             console.error('Ошибка:', error);
@@ -2012,6 +2060,31 @@
             button.style.display = 'none';
         });
     }
+
+    document.addEventListener('click', function(event) {
+    // Проверяем, не был ли клик совершен внутри .comment-editable
+    if (!event.target.closest('.comment-editable')) {
+        // Проходимся по всем .comment-editable и убираем класс 'expanded'
+        document.querySelectorAll('.comment-editable.expanded').forEach(function(element) {
+            element.classList.remove('expanded');
+            // element.style.maxHeight = '30px'; // Устанавливаем max-height обратно на начальное значение
+        });
+    }
+});
+
+    document.getElementById('gamesList').addEventListener('click', function(event) {
+        if (event.target.classList.contains('comment-editable')) {
+            // Проверяем, расширен ли элемент
+            if (!event.target.classList.contains('expanded')) {
+                event.target.classList.add('expanded');
+                event.target.style.maxHeight = '500px'; // Устанавливаем max-height для расширенного состояния
+            } else {
+                event.target.classList.remove('expanded');
+                // event.target.style.maxHeight = '30px'; // Устанавливаем max-height обратно на начальное значение
+            }
+            event.stopPropagation(); // Останавливаем всплытие события
+        }
+    }, true);
 
     function showNotification(message) {
         const notification = document.getElementById('notification');
