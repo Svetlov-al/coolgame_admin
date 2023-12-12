@@ -25,15 +25,16 @@ async def get_codes(game_id: str):
 
 @router.put("/{game_id}",
             status_code=status.HTTP_200_OK,
-            description="Обновление кодов активации игры")
+            description="Обновление кодов активации игры",
+            response_model=schemas.GameOut)
 async def update_codes(game_id: str, codes_update: schemas.ActivationCodes):
     print(codes_update)
     existing_game = await game_service.find_game_by_id(game_id)
     if not existing_game:
         raise HTTPException(status_code=404, detail="Game not found")
 
-    await code_service.update_codes(game_id, codes_update.codes)
-    return {"message": "Activation codes updated successfully"}
+    updated_game = await code_service.update_codes(game_id, codes_update.codes)
+    return updated_game
 
 
 @router.delete("/{game_id}/{code_index}")

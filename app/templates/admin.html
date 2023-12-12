@@ -803,6 +803,12 @@
 
     var gamesData = {}; // Глобальный объект для хранения данных игр
 
+    // Глобальный объект для хранения данных PSN аккаунтов
+    var psnAccountsData = {};
+
+    // Глобальный объект для хранения данных PSN аккаунтов
+    var emailAccountsData = {};
+
     let rentalPrice = null;
     let rentalDate = null;
 
@@ -873,6 +879,7 @@
         games.forEach(game => {
         const gameRow = document.createElement('tr');
         gameRow.className = 'align-items-center';
+        gameRow.setAttribute('data-game-id', game._id);
 
         // Формирование строки с информацией о PSN аккаунте
         const psnAccount = game.psnAccount ? game.psnAccount : {};
@@ -1232,17 +1239,17 @@
 }
 
     function addGameForm() {
-    new bootstrap.Modal(document.getElementById('addGameModal')).show();
-}
-
-    document.getElementById('editRentalStatus').addEventListener('change', function() {
-    const editButton = document.getElementById('editRentalDataButton');
-    if (this.value === 'AVAILABLE') {
-        editButton.style.display = 'block'; // Показать кнопку
-    } else {
-        editButton.style.display = 'none'; // Скрыть кнопку
+        new bootstrap.Modal(document.getElementById('addGameModal')).show();
     }
-});
+
+        document.getElementById('editRentalStatus').addEventListener('change', function() {
+        const editButton = document.getElementById('editRentalDataButton');
+        if (this.value === 'AVAILABLE') {
+            editButton.style.display = 'block'; // Показать кнопку
+        } else {
+            editButton.style.display = 'none'; // Скрыть кнопку
+        }
+    });
 
     async function submitAddGameForm(event) {
     event.preventDefault(); // Предотвращение стандартного поведения формы
@@ -1322,51 +1329,51 @@
     };
 
     function editGame(gameId) {
-    const game = gamesData[gameId];
+        const game = gamesData[gameId];
 
-    // Заполнение формы данными игры
-    document.getElementById('editGameIdField').value = gameId;
-    document.getElementById('editGameName').value = game.gameName || '';
-    document.getElementById('editTransactionNumber').value = game.transactionNumber || '';
-    document.getElementById('editPrice').value = game.price || '';
-    document.getElementById('editGamePurchaseDate').value = game.purchaseDate || '';
-    document.getElementById('editLastDeactivationDate').value = game.lastDeactivationDate || '';
-    document.getElementById('editComment').value = game.comment || '';
+        // Заполнение формы данными игры
+        document.getElementById('editGameIdField').value = gameId;
+        document.getElementById('editGameName').value = game.gameName || '';
+        document.getElementById('editTransactionNumber').value = game.transactionNumber || '';
+        document.getElementById('editPrice').value = game.price || '';
+        document.getElementById('editGamePurchaseDate').value = game.purchaseDate || '';
+        document.getElementById('editLastDeactivationDate').value = game.lastDeactivationDate || '';
+        document.getElementById('editComment').value = game.comment || '';
 
-    fillRentalDataModal(game);
+        fillRentalDataModal(game);
 
-    // Установка выбранного значения для статуса продажи
-    const saleStatusElement = document.getElementById('editSaleStatus');
-    const saleStatusKey = reverseSaleStatusMappings[game.saleStatus];
-    if (saleStatusKey) {
-        saleStatusElement.value = saleStatusKey;
-    } else {
-        saleStatusElement.selectedIndex = 0; // Выбрать первый элемент в списке, например, пустой выбор или значение по умолчанию
+        // Установка выбранного значения для статуса продажи
+        const saleStatusElement = document.getElementById('editSaleStatus');
+        const saleStatusKey = reverseSaleStatusMappings[game.saleStatus];
+        if (saleStatusKey) {
+            saleStatusElement.value = saleStatusKey;
+        } else {
+            saleStatusElement.selectedIndex = 0; // Выбрать первый элемент в списке, например, пустой выбор или значение по умолчанию
+        }
+
+        // Установка выбранного значения для статуса аренды
+        const rentalStatusElement = document.getElementById('editRentalStatus');
+        if (game.rentalInfo && game.rentalInfo.isRented) {
+            rentalStatusElement.value = game.rentalInfo.isRented === 'ДА' ? 'AVAILABLE' : 'NOT_AVAILIABLE';
+        } else {
+            rentalStatusElement.selectedIndex = 0; // Выбрать первый элемент в списке
+        }
+
+        // Показ модального окна для редактирования
+        new bootstrap.Modal(document.getElementById('gameEditModal')).show();
     }
 
-    // Установка выбранного значения для статуса аренды
-    const rentalStatusElement = document.getElementById('editRentalStatus');
-    if (game.rentalInfo && game.rentalInfo.isRented) {
-        rentalStatusElement.value = game.rentalInfo.isRented === 'ДА' ? 'AVAILABLE' : 'NOT_AVAILIABLE';
-    } else {
-        rentalStatusElement.selectedIndex = 0; // Выбрать первый элемент в списке
-    }
-
-    // Показ модального окна для редактирования
-    new bootstrap.Modal(document.getElementById('gameEditModal')).show();
-}
-
-    const saleStatusMappings = {
-    'FOR_SALE': 'В продаже',
-    'SOLD': 'Продано',
-    'PREORDER': 'Прездаказ',
-    'FOR_SALE_PS5': 'В продаже PS5',
-    'FOR_SALE_PS4': 'В продаже PS4',
-    'PUSH_TO_SALE': '! На продажу',
-    'FOR_SALE_P1': 'В продаже П1',
-    'BLOCKED': 'Заблокирован',
-    'RECOVER': 'Восстановить'
-};
+        const saleStatusMappings = {
+        'FOR_SALE': 'В продаже',
+        'SOLD': 'Продано',
+        'PREORDER': 'Прездаказ',
+        'FOR_SALE_PS5': 'В продаже PS5',
+        'FOR_SALE_PS4': 'В продаже PS4',
+        'PUSH_TO_SALE': '! На продажу',
+        'FOR_SALE_P1': 'В продаже П1',
+        'BLOCKED': 'Заблокирован',
+        'RECOVER': 'Восстановить'
+    };
 
     document.getElementById('gameEditForm').addEventListener('submit', async function(event) {
         event.preventDefault(); // Предотвращаем стандартную отправку формы
@@ -1416,7 +1423,7 @@
             }
 
             const gameResult = await gameResponse.json();
-            console.log(gameResult.message);
+            await updateGameInDOM(gameId, gameResult);
 
             // Закрываем модальное окно после успешного обновления
             const gameEditModal = bootstrap.Modal.getInstance(document.getElementById('gameEditModal'));
@@ -1428,38 +1435,87 @@
         }
     });
 
+    async function updateGameInDOM(gameId, updatedGame) {
+    const gameRow = document.querySelector(`#gamesList tr[data-game-id="${gameId}"]`);
+    if (gameRow) {
+        // Обновление номера аккаунта
+        gameRow.cells[0].textContent = updatedGame.account_number || '';
+
+        // Обновление названия игры
+        const gameNameLink = gameRow.cells[1].querySelector('a');
+        gameNameLink.textContent = updatedGame.gameName || '';
+        gameNameLink.setAttribute('onclick', `editGame('${updatedGame._id}')`);
+
+        // Обновление статуса продажи
+        const saleStatusCell = gameRow.cells[2];
+        saleStatusCell.innerHTML = updatedGame.saleStatus ?
+            `${updatedGame.saleStatus}
+            <button class="btn btn-sm btn-outline-primary" onclick="showSaleStatusModal('${updatedGame._id}')">
+                <i class="fas fa-edit"></i>
+            </button>` : '';
+
+        // Обновление email аккаунта
+        const emailAccountContent = updatedGame.emailAccount && updatedGame.emailAccount.email ?
+            `<a href="#" class="btn btn-sm btn-secondary" onclick="showEmailModal('email-${updatedGame._id}')">${updatedGame.emailAccount.email}</a>` :
+            `<button class="btn btn-sm btn-secondary" onclick="showEmailModal('email-${updatedGame._id}')">Добавить Email</button>`;
+        gameRow.cells[3].innerHTML = emailAccountContent;
+
+        // Обновление PSN аккаунта и кнопок
+        const psnAccountContent = updatedGame.psnAccount && updatedGame.psnAccount.name ?
+            `<a href="#" class="btn btn-sm btn-warning" onclick="showPsnModal('psn-${updatedGame._id}')">${updatedGame.psnAccount.name}</a>` :
+            `<button class="btn btn-sm btn-warning" onclick="showPsnModal('psn-${updatedGame._id}')">Добавить PSN</button>`;
+        gameRow.cells[4].innerHTML = `${psnAccountContent}
+            <button onclick="showUpdatePsnPasswordModal('${updatedGame._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-key"></i></button>
+            <button onclick="showAccessInfoModal('${updatedGame._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-info-circle"></i></button>`;
+
+        // Обновление кодов активации и информации об активации
+        const activationCodesButton = `<button class="btn btn-sm btn-outline-primary" onclick="showActivationCodesModal('${updatedGame._id}')">Коды</button>`;
+        const activationInfoButton = `<button class="btn btn-sm btn-outline-primary" onclick="showActivationInfoModal('${updatedGame._id}')">Информация об активации</button>`;
+        gameRow.cells[5].innerHTML = activationCodesButton;
+        gameRow.cells[6].innerHTML = activationInfoButton;
+
+        // Обновление комментария
+        const commentCell = gameRow.cells[7];
+        const commentDiv = commentCell.querySelector('.comment-editable');
+        commentDiv.textContent = updatedGame.comment || '';
+
+        // Отображение уведомления об успешном обновлении
+        showNotification('Игра успешно обновлена.');
+    }
+}
+
     function showSaleStatusModal(gameId) {
-    const game = gamesData[gameId]; // Предполагается, что gamesData - это ваш объект данных
-    const currentSaleStatusKey = reverseSaleStatusMappings[game.saleStatus]; // Получаем ключ статуса продажи
+        const game = gamesData[gameId]; // Предполагается, что gamesData - это ваш объект данных
+        const currentSaleStatusKey = reverseSaleStatusMappings[game.saleStatus]; // Получаем ключ статуса продажи
 
-    const saleStatusOptions = document.getElementById('saleStatusOptions');
-    saleStatusOptions.innerHTML = '';
+        const saleStatusOptions = document.getElementById('saleStatusOptions');
+        saleStatusOptions.innerHTML = '';
 
-    // Создание радиокнопок для каждого статуса
-    Object.keys(saleStatusMappings).forEach((key, index) => {
-        const container = document.createElement('div');
-        container.className = 'form-check';
+        // Создание радиокнопок для каждого статуса
+        Object.keys(saleStatusMappings).forEach((key, index) => {
+            const container = document.createElement('div');
+            container.className = 'form-check';
 
-        const radioInput = document.createElement('input');
-        radioInput.type = 'radio';
-        radioInput.className = 'form-check-input';
-        radioInput.id = `status-${index}`;
-        radioInput.name = 'saleStatus';
-        radioInput.value = key;
+            const radioInput = document.createElement('input');
+            radioInput.type = 'radio';
+            radioInput.className = 'form-check-input';
+            radioInput.id = `status-${index}`;
+            radioInput.name = 'saleStatus';
+            radioInput.value = key;
 
-        // Устанавливаем радиокнопку как выбранную, если ключ статуса совпадает с текущим
-        if (key === currentSaleStatusKey) {
-            radioInput.checked = true;
-        }
+            // Устанавливаем радиокнопку как выбранную, если ключ статуса совпадает с текущим
+            if (key === currentSaleStatusKey) {
+                radioInput.checked = true;
+            }
 
-        const label = document.createElement('label');
-        label.className = 'form-check-label';
-        label.htmlFor = `status-${index}`;
-        label.textContent = saleStatusMappings[key];
+            const label = document.createElement('label');
+            label.className = 'form-check-label';
+            label.htmlFor = `status-${index}`;
+            label.textContent = saleStatusMappings[key];
 
-        container.appendChild(radioInput);
-        container.appendChild(label);
-        saleStatusOptions.appendChild(container);
+            container.appendChild(radioInput);
+            container.appendChild(label);
+            saleStatusOptions.appendChild(container);
     });
 
     // Показываем модальное окно
@@ -1491,7 +1547,7 @@
             alert('Ошибка обновления статуса продажи');
         }
     };
-}
+    }
 
     function showActivationCodesModal(gameId) {
         const game = gamesData[gameId];
@@ -1521,12 +1577,41 @@
 
     function showConfirmationModal(gameId, code, index) {
     // Установка текста и обработчика клика для кнопки "Удалить"
-        document.getElementById('confirmationText').textContent = `Вы уверены, что хотите удалить код: ${code}?`;
-        document.getElementById('confirmDelete').onclick = () => deleteCode(gameId, code, index);
+    document.getElementById('confirmationText').textContent = `Вы уверены, что хотите удалить код: ${code}?`;
+    document.getElementById('confirmDelete').onclick = () => {
+        deleteCode(gameId, code, index, () => {
+            // Закрытие модального окна подтверждения
+            $('#confirmationModal').modal('hide');
 
-        // Показ модального окна подтверждения
-        const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
-        confirmationModal.show();
+            // Получение и отображение обновленных кодов активации
+            fetchUpdatedActivationCodes(gameId);
+        });
+    };
+
+    // Показ модального окна подтверждения
+    const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+    confirmationModal.show();
+}
+
+    function fetchUpdatedActivationCodes(gameId) {
+        fetch(`/games/${gameId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка при получении кодов: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(updatedGame => {
+            gamesData[gameId] = updatedGame; // Обновляем данные в глобальном объекте
+            $('#activationCodesModal').modal('hide');
+            // Добавляем небольшую задержку перед открытием нового модального окна
+            setTimeout(() => {
+                showActivationCodesModal(gameId); // Переоткрываем модальное окно с обновленными данными
+            }, 100); // Задержка в 300 миллисекунд
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
     }
 
     function showUpdateCodesModal(gameId) {
@@ -1534,6 +1619,32 @@
         const updateModal = new bootstrap.Modal(document.getElementById('updateCodesModal'));
         updateModal.show();
 }
+
+    function updateActivationCodesInDOM(gameId, updatedGame) {
+        const game = gamesData[gameId];
+
+        // Обновляем данные в глобальном объекте gamesData
+        gamesData[gameId] = updatedGame;
+
+        let activationCodesHtml = '';
+        if (updatedGame.activationCodes && updatedGame.activationCodes.length > 0) {
+            updatedGame.activationCodes.forEach((code, index) => {
+                activationCodesHtml += `
+                    <div class="mb-2">
+                        * ${code}
+                        <button class="btn btn-sm" onclick="copyCodeToClipboard('${code}')">&#x1F4CB;</button>
+                        <button class="btn btn-sm" onclick="showConfirmationModal('${updatedGame._id}', '${code}', ${index})">&#x1F5D1;</button>
+                    </div>`;
+            });
+        } else {
+            activationCodesHtml = 'Коды активации не найдены';
+        }
+
+        // Кнопка "Обновить коды"
+        activationCodesHtml += `<button type="button" class="btn btn-primary" onclick="showUpdateCodesModal('${updatedGame._id}')">Обновить коды</button>`;
+
+        document.getElementById('activationCodesContainer').innerHTML = activationCodesHtml;
+    }
 
     function updateCodes(gameId) {
         var newCodes = document.getElementById('newActivationCodes').value;
@@ -1556,12 +1667,13 @@
             }
             return response.json();
         })
-        .then(data => {
-            console.log('Success:', data);
-            // Закрытие обоих модальных окон после успешного обновления данных
+        .then(updatedGame => {
+            console.log('Success:', updatedGame);
+            updateActivationCodesInDOM(gameId, updatedGame); // Обновляем DOM с новыми кодами активации
+            // Закрытие модальных окон
             $('#updateCodesModal').modal('hide');
             $('#activationCodesModal').modal('hide');
-            // window.location.reload(); // Перезагрузить страницу
+            // Другие действия после успешного обновления
         })
         .catch((error) => {
             console.error('Error:', error);
@@ -1593,7 +1705,12 @@
         })
         .then(data => {
             showNotification(`Код ${code} удален!`);
-            // window.location.reload(); // Перезагрузить страницу
+
+            // Закрытие модального окна подтверждения (если оно открыто)
+            $('#confirmationModal').modal('hide');
+
+            // Выполнение запроса для получения обновленных данных и открытие модального окна с кодами активации
+            fetchUpdatedActivationCodes(gameId);
         })
         .catch(error => {
             console.error('Ошибка при удалении кода:', error);
@@ -1601,12 +1718,8 @@
         });
     }
 
-    // Глобальный объект для хранения данных PSN аккаунтов
-    var psnAccountsData = {};
-
     function showPsnModal(psnAccountId) {
         const psnAccount = psnAccountsData[psnAccountId] || {};
-
         // Заполнение формы данными PSN аккаунта
         document.getElementById('psnName').value = psnAccount.name || '';
         document.getElementById('psnPassword').value = psnAccount.password || '';
@@ -1645,29 +1758,37 @@
 
             console.log("Отправляемые данные:", updatedPsnAccount);
           // Отправка PUT запроса
-              try {
-                const response = await fetch(`/psnaccount/${gameIdValue}`, {
-                  method: 'PUT',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify(updatedPsnAccount)
-                });
+        try {
+        const response = await fetch(`/psnaccount/${gameIdValue}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updatedPsnAccount)
+        });
 
-                if (response.ok) {
-                  console.log($('#psnModal'));
-                    $('#psnModal').modal('hide'); // Закрыть модальное окно
-                    // window.location.reload(); // Перезагрузить страницу
-                } else {
-                  console.error('Ошибка при обновлении данных: ', response.statusText);
-                }
-              } catch (error) {
-                console.error('Ошибка при отправке запроса: ', error);
-              }
-            }
+        if (response.ok) {
+            const responseData = await response.json();
 
-    // Глобальный объект для хранения данных PSN аккаунтов
-    var emailAccountsData = {};
+            // Обновление данных в DOM
+            await updateGameInDOM(gameIdValue, responseData);
+
+            // Обновление глобального объекта gamesData
+            gamesData[gameIdValue] = responseData;
+
+            // Дополнительно обновить данные в psnAccountsData
+            const psnAccountId = `psn-${gameIdValue}`;
+            psnAccountsData[psnAccountId] = responseData.psnAccount || {};
+
+            $('#psnModal').modal('hide'); // Закрыть модальное окно
+            // window.location.reload(); // Перезагрузить страницу
+        } else {
+            console.error('Ошибка при обновлении данных: ', response.statusText);
+        }
+    } catch (error) {
+        console.error('Ошибка при отправке запроса: ', error);
+        }
+    }
 
     function showEmailModal(emailAccountId) {
     const emailAccount = emailAccountsData[emailAccountId];
@@ -1710,8 +1831,16 @@
             }
             return response.json();
         })
-        .then(data => {
+        .then(async data => {
             console.log('Success:', data);
+
+            // Обновление глобального объекта gamesData
+            gamesData[gameIdValue] = data;
+            // Дополнительно обновить данные в psnAccountsData
+            const emailAccountsId = `email-${gameIdValue}`;
+            emailAccountsData[emailAccountsId] = data.emailAccount || {};
+            await updateGameInDOM(gameIdValue, data);
+
             $('#emailModal').modal('hide'); // Закрыть модальное окно после успешного обновления
             // window.location.reload(); // Перезагрузить страницу, если нужно
         })

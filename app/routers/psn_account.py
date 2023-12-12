@@ -29,10 +29,13 @@ async def add_psn_account(game_id: str, psn_account: schemas.PSNAccount):
     return {"message": "PSN account added successfully"}
 
 
-@router.put("/{game_id}")
+@router.put("/{game_id}",
+            status_code=status.HTTP_200_OK,
+            description='Обновление PSN аккаунта.',
+            response_model=schemas.GameOut)
 async def update_psn_account(game_id: str, psn_account_data: schemas.PSNAccountOut):
-    await psn_service.update_psn_account(game_id, psn_account_data)
-    return {"message": "PSN account updated successfully"}
+    updated_game = await psn_service.update_psn_account(game_id, psn_account_data)
+    return updated_game
 
 
 @router.delete("/{game_id}")

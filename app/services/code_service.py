@@ -21,11 +21,11 @@ class CodeService:
     @staticmethod
     async def delete_code(game_id: str, code_index: int) -> bool:
         """Удаление кода активации игры"""
-        await code_repository.delete_activation_code(game_id, code_index)
-        return True
+        result = await code_repository.delete_activation_code(game_id, code_index)
+        return result
 
     @staticmethod
     async def update_codes(game_id: str, codes: list[str]) -> bool:
         # Здесь нет необходимости в блоке try-except, если вы не обрабатываете конкретные исключения
-        await code_repository.update_activation_codes(game_id, codes)
-        return True
+        return await code_repository.update_activation_codes(game_id, codes)
+

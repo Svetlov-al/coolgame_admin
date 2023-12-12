@@ -68,10 +68,17 @@ class GameRepository:
     async def update_game(self, game_id: str, game_data: dict):
         query = {'_id': ObjectId(game_id)}
         update_fields = {f"{key}": value for key, value in game_data.items() if value is not None}
+
         if not update_fields:
-            return False
+            return []
+
         result = await self.collection.update_one(query, {'$set': update_fields})
-        return result
+
+        if result.matched_count == 0:
+            return []
+
+        updated_game = await self.collection.find_one(query)
+        return updated_game
 
     async def update_sale_status(self, game_id: str, sale_status: SaleStatus) -> bool:
         update_data = {'saleStatus': sale_status.value}
@@ -103,10 +110,15 @@ class CodeRepository:
             raise HTTPException(status_code=404, detail="Game not found")
 
     async def update_activation_codes(self, game_id: str, codes: list[str]):
+        # Выполнение обновления
         await self.collection.update_one(
             {'_id': ObjectId(game_id)},
             {'$set': {'activationCodes': codes}}
         )
+
+        # Получение и возврат обновленных данных об игре
+        updated_game = await self.collection.find_one({'_id': ObjectId(game_id)})
+        return updated_game
 
     async def delete_activation_code(self, game_id: str, code_index: int):
         """Удаление кода активации по индексу"""
@@ -116,8 +128,8 @@ class CodeRepository:
             del game_data['activationCodes'][code_index]
             # Обновление списка активационных кодов в игре
             await self.update_activation_codes(game_id, game_data['activationCodes'])
+            return True
         else:
-            # Если индекс вне диапазона или игра не найдена, можно выбросить исключение
             raise HTTPException(status_code=404, detail="Game not found or index out of range")
 
 
@@ -222,6 +234,9 @@ class EmailAccountRepository:
         if update_result.modified_count == 0:
             raise HTTPException(status_code=404, detail="Game not found or Email account not updated")
 
+        updated_game = await self.collection.find_one({'_id': ObjectId(game_id)})
+        return updated_game
+
     async def delete_email_account(self, game_id: str):
         update_result = await self.collection.update_one(
             {'_id': ObjectId(game_id)},
@@ -254,7 +269,6 @@ class PSNAccountRepository:
 
     async def update_psn_account(self, game_id: str, psn_account: schemas.PSNAccountOut):
         update_data = {f'psnAccount.{k}': v for k, v in psn_account.model_dump(exclude_unset=True).items()}
-        print(update_data)
         if not update_data:
             raise HTTPException(status_code=400, detail="No fields to update")
 
@@ -264,6 +278,9 @@ class PSNAccountRepository:
         )
         if update_result.modified_count == 0:
             raise HTTPException(status_code=404, detail="Game not found or psn account not updated")
+
+        updated_game = await self.collection.find_one({'_id': ObjectId(game_id)})
+        return updated_game
 
     async def delete_psn_account(self, game_id: str):
         update_result = await self.collection.update_one(
