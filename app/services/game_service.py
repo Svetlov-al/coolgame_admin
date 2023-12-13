@@ -1,3 +1,4 @@
+import copy
 from typing import Optional
 
 from bson import ObjectId
@@ -48,20 +49,21 @@ class GameService:
         updated = await game_repository.update_game(game_id, update_data)
         return updated
 
-    async def update_sale_status(self, game_id: str, sale_status: SaleStatus) -> str:
+    async def update_sale_status(self, game_id: str, sale_status: SaleStatus):
         existing_game = await self.find_game_by_id(game_id)
         if not existing_game:
             raise ValueError("Game not found")
 
-        # Если статус уже установлен в нужное значение, возвращаем "success"
+        # Если статус уже установлен в нужное значение, возвращаем текущую игру
         if existing_game.saleStatus == sale_status:
-            return "success"
+            return existing_game
 
-        update_result = await game_repository.update_sale_status(game_id, sale_status)
-        if update_result:
-            return "success"
-        else:
-            raise HTTPException(status_code=404, detail="Game not found or unable to update")
+        updated_game = copy.deepcopy(existing_game)
+        updated_game.saleStatus = sale_status
+
+        await game_repository.update_sale_status(game_id, sale_status)
+
+        return updated_game
 
     @staticmethod
     async def delete_game(game_id: ObjectId):

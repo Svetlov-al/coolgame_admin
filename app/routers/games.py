@@ -52,7 +52,6 @@ async def search_games(query: str = Query(None), skip: int = 0, limit: int = 50)
              response_model=schemas.GameOut)
 async def add_game(game: schemas.Game):
     new_game = await game_service.add_game(game_data=game.model_dump())
-    print(new_game)
     return new_game
 
 
@@ -80,10 +79,12 @@ async def update_game(game_id: str, game_update: schemas.GameUpdate):
     return updated_game
 
 
-@router.put("/{game_id}/sale-status", status_code=status.HTTP_200_OK)
+@router.put("/{game_id}/sale-status",
+            status_code=status.HTTP_200_OK,
+            response_model=schemas.GameOut)
 async def update_sale_status(game_id: str, sale_status_update: SaleStatusUpdate):
-    message = await game_service.update_sale_status(game_id, sale_status_update.saleStatus)
-    return {"message": message}
+    game = await game_service.update_sale_status(game_id, sale_status_update.saleStatus)
+    return game
 
 
 @router.delete("/{game_id}",

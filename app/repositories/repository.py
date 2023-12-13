@@ -81,7 +81,7 @@ class GameRepository:
         updated_game = await self.collection.find_one(query)
         return updated_game
 
-    async def update_sale_status(self, game_id: str, sale_status: SaleStatus) -> bool:
+    async def update_sale_status(self, game_id: str, sale_status: SaleStatus):
         update_data = {'saleStatus': sale_status.value}
 
         update_result = await self.collection.update_one(
@@ -89,7 +89,11 @@ class GameRepository:
             {'$set': update_data}
         )
 
-        return True
+        if update_result.modified_count == 1:
+            game = await self.get_game_by_id(game_id)
+            return game
+        else:
+            return None
 
     async def delete_game(self, game_id: ObjectId):
         """Метод удаления игры по идентификатору"""

@@ -1466,7 +1466,6 @@
         }
     }
 
-
     const reverseSaleStatusMappings = {
         'В продаже': 'FOR_SALE',
         'Продано': 'SOLD',
@@ -1514,7 +1513,7 @@
         new bootstrap.Modal(document.getElementById('gameEditModal')).show();
     }
 
-        const saleStatusMappings = {
+    const saleStatusMappings = {
         'FOR_SALE': 'В продаже',
         'SOLD': 'Продано',
         'PREORDER': 'Прездаказ',
@@ -1560,7 +1559,11 @@
                 throw new Error('Failed to update the game');
             }
 
-            // Отправка статуса продажи
+            let updatedGame = await gameResponse.json();
+            gamesData[gameId] = updatedGame;
+            await updateGameInDOM(gameId, updatedGame);
+
+            // Отправка статуса продажи и обновление данных в случае успешного ответа
             if (saleStatusValue) {
                 const saleStatusResponse = await fetch(`/games/${gameId}/sale-status`, {
                     method: 'PUT',
@@ -1568,13 +1571,14 @@
                     body: JSON.stringify({ saleStatus: saleStatusValue })
                 });
 
-                if (!saleStatusResponse.ok) {
+                if (saleStatusResponse.ok) {
+                    updatedGame = await saleStatusResponse.json();
+                    gamesData[gameId] = updatedGame;
+                    await updateGameInDOM(gameId, updatedGame);
+                } else {
                     throw new Error('Failed to update the sale status');
                 }
             }
-
-            const gameResult = await gameResponse.json();
-            await updateGameInDOM(gameId, gameResult);
 
             // Закрываем модальное окно после успешного обновления
             const gameEditModal = bootstrap.Modal.getInstance(document.getElementById('gameEditModal'));
@@ -1588,6 +1592,7 @@
 
     async function updateGameInDOM(gameId, updatedGame) {
         const gameRow = document.querySelector(`#gamesList tr[data-game-id="${gameId}"]`);
+        gamesData[gameId] = updatedGame
         if (gameRow) {
             // Обновление номера аккаунта
             gameRow.cells[0].textContent = updatedGame.account_number || '';
@@ -1668,37 +1673,40 @@
             container.appendChild(label);
             saleStatusOptions.appendChild(container);
     });
+        // Показываем модальное окно
+        const saleStatusModal = new bootstrap.Modal(document.getElementById('saleStatusModal'));
+        saleStatusModal.show();
 
-    // Показываем модальное окно
-    const saleStatusModal = new bootstrap.Modal(document.getElementById('saleStatusModal'));
-    saleStatusModal.show();
+        // Обработка отправки формы
+        document.getElementById('saleStatusForm').onsubmit = async function(event) {
+            event.preventDefault();
+            const selectedKey = document.querySelector('input[name="saleStatus"]:checked').value;
+            const saleStatusValue = saleStatusMappings[selectedKey];
 
-    // Обработка отправки формы
-    document.getElementById('saleStatusForm').onsubmit = async function(event) {
-        event.preventDefault();
-        const selectedKey = document.querySelector('input[name="saleStatus"]:checked').value;
-        const saleStatusValue = saleStatusMappings[selectedKey];
+            try {
+                // Отправка нового статуса на сервер
+                const response = await fetch(`/games/${gameId}/sale-status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ saleStatus: saleStatusValue })
+                });
 
-        try {
-            // Отправка нового статуса на сервер
-            const response = await fetch(`/games/${gameId}/sale-status`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ saleStatus: saleStatusValue })
-            });
+                if (!response.ok) {
+                    throw new Error('Failed to update the sale status');
+                }
 
-            if (!response.ok) {
-                throw new Error('Failed to update the sale status');
-            }
+                // Обновление DOM
+                const updatedGame = await response.json();
+                await updateGameInDOM(gameId, updatedGame);
+                saleStatusModal.hide(); // <-- Добавлена фигурная скобка `}`
 
-            // Обновление интерфейса и закрытие модального окна
-            // window.location.reload();
-        } catch (error) {
-            console.error('Ошибка:', error);
-            alert('Ошибка обновления статуса продажи');
+                // Отображение уведомления об успешном обновлении
+                showNotification('Статус продажи игры обновлен.');
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка обновления статуса продажи');
+            }};
         }
-    };
-    }
 
     function showActivationCodesModal(gameId) {
         const game = gamesData[gameId];

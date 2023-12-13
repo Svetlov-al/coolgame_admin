@@ -1,4 +1,5 @@
 from fastapi import APIRouter, status
+from starlette.responses import Response
 
 from config import schemas
 from services.psn_service import PsnService
@@ -40,4 +41,4 @@ async def update_psn_account(game_id: str, psn_account_data: schemas.PSNAccountO
 @router.delete("/{game_id}")
 async def delete_psn_account(game_id: str):
     await psn_service.delete_psn_account(game_id)
-    return {"message": "PSN account deleted successfully"}
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
