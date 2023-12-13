@@ -279,12 +279,10 @@ class PSNAccountRepository:
         if not update_data:
             raise HTTPException(status_code=400, detail="No fields to update")
 
-        update_result = await self.collection.update_one(
+        await self.collection.update_one(
             {'_id': ObjectId(game_id)},
             {'$set': update_data}
         )
-        if update_result.modified_count == 0:
-            raise HTTPException(status_code=404, detail="Game not found or psn account not updated")
 
         updated_game = await self.collection.find_one({'_id': ObjectId(game_id)})
         return updated_game

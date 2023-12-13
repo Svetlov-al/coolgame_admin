@@ -1752,7 +1752,7 @@
     confirmationModal.show();
 }
 
-    function fetchUpdatedActivationCodes(gameId) {
+    function fetchUpdatedActivationCodes(gameId, reopen) {
         fetch(`/games/${gameId}`)
         .then(response => {
             if (!response.ok) {
@@ -1762,11 +1762,14 @@
         })
         .then(updatedGame => {
             gamesData[gameId] = updatedGame; // Обновляем данные в глобальном объекте
-            $('#activationCodesModal').modal('hide');
-            // Добавляем небольшую задержку перед открытием нового модального окна
-            setTimeout(() => {
-                showActivationCodesModal(gameId); // Переоткрываем модальное окно с обновленными данными
-            }, 100); // Задержка в 300 миллисекунд
+            if (reopen) {
+                $('#activationCodesModal').modal('hide');
+                // Добавляем небольшую задержку перед открытием нового модального окна
+                setTimeout(() => {
+                    showActivationCodesModal(gameId); // Переоткрываем модальное окно с обновленными данными
+                }, 100); // Задержка в 100 миллисекунд
+                // Переоткрываем модальное окно с обновленными данными
+            }
         })
         .catch(error => {
             console.error('Error:', error);
@@ -1844,7 +1847,7 @@
         showNotification(`Код ${code} скопирован в буфер обмена`);
     });}
 
-    function deleteCode(gameId, code, codeIndex) {
+    function deleteCode(gameId, code, codeIndex, reopen=true) {
         fetch(`/codes/${gameId}/${codeIndex}`, {
             method: 'DELETE',
             headers: {
@@ -1868,8 +1871,8 @@
             // Закрытие модального окна подтверждения (если оно открыто)
             $('#confirmationModal').modal('hide');
 
-            // Выполнение запроса для получения обновленных данных и открытие модального окна с кодами активации
-            fetchUpdatedActivationCodes(gameId);
+            // Всегда выполняем запрос для получения обновленных данных
+            fetchUpdatedActivationCodes(gameId, reopen);
         })
         .catch(error => {
             console.error('Ошибка при удалении кода:', error);
@@ -2295,8 +2298,8 @@
                 // Обновление данных в DOM
                 await updateGameInDOM(gameId, responseData);
 
-                // Обновление глобального объекта gamesData
-                gamesData[gameId] = responseData;
+                // // Обновление глобального объекта gamesData
+                // gamesData[gameId] = responseData;
 
                 // Дополнительно обновить данные в psnAccountsData
                 const psnAccountId = `psn-${gameId}`;
@@ -2312,7 +2315,7 @@
         }
 }
 
-    function copyAccessInfoAndDeleteCode(gameId, codeIndex) {
+    function copyAccessInfoAndDeleteCode(gameId, codeIndex, reopen = false) {
         // Копирование данных в буфер обмена
         const psnLogin = document.getElementById('psnLogin').value;
         const psnPassword = document.getElementById('psnPasswordModal').value;
@@ -2321,9 +2324,12 @@
 
         navigator.clipboard.writeText(accessInfo).then(() => {
             // Удаление кода
-            deleteCode(gameId, firstAccessCode, codeIndex);
+            deleteCode(gameId, firstAccessCode, codeIndex, reopen);
 
             showNotification('Информация скопирована');
+
+            // Закрытие текущего окна
+            $('#accessInfoModal').modal('hide');
         });
 }
 
