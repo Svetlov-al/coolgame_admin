@@ -2,6 +2,7 @@ from fastapi import APIRouter, status
 from starlette.responses import Response
 
 from config import schemas
+from infrastructure.crypto_utils import encryptor
 from services.psn_service import PsnService
 
 router = APIRouter(
@@ -26,7 +27,8 @@ async def get_psn_account(game_id: str):
              description="Добавление PSN аккаунта в игру",
              response_model=schemas.GameOut)
 async def add_psn_account(game_id: str, psn_account: schemas.PSNAccount):
-    return await psn_service.add_psn_account(game_id, psn_account)
+    new_psn_account =  await psn_service.add_psn_account(game_id, psn_account)
+    return encryptor.decrypt_game_passwords(new_psn_account)
 
 
 @router.put("/{game_id}",
@@ -35,7 +37,7 @@ async def add_psn_account(game_id: str, psn_account: schemas.PSNAccount):
             response_model=schemas.GameOut)
 async def update_psn_account(game_id: str, psn_account_data: schemas.PSNAccountOut):
     updated_game = await psn_service.update_psn_account(game_id, psn_account_data)
-    return updated_game
+    return encryptor.decrypt_game_passwords(updated_game)
 
 
 @router.delete("/{game_id}")

@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     algorithm: str
     access_token_expire_minutes: int
     admin_password: str
+    encryption_key: str
 
     class Config:
         env_file = ".env"

@@ -5,6 +5,7 @@ from fastapi import HTTPException
 
 from config import schemas
 from config.schemas import ActivationCodesOut, EmailAccountOut, PSNAccountOut, SaleStatus
+from infrastructure.crypto_utils import encryptor
 
 
 class GameRepository:
@@ -111,7 +112,6 @@ class CodeRepository:
         if game_data:
             return ActivationCodesOut(game_id=game_id, codes=game_data.get('activationCodes', []))
         else:
-            # Если игра не найдена, возможно, стоит вернуть ошибку или пустой объект
             raise HTTPException(status_code=404, detail="Game not found")
 
     async def update_activation_codes(self, game_id: str, codes: list[str]):
@@ -121,7 +121,6 @@ class CodeRepository:
             {'$set': {'activationCodes': codes}}
         )
 
-        # Получение и возврат обновленных данных об игре
         updated_game = await self.collection.find_one({'_id': ObjectId(game_id)})
         return updated_game
 
@@ -224,6 +223,9 @@ class EmailAccountRepository:
             raise HTTPException(status_code=404, detail="No data")
 
     async def add_email_account(self, game_id: str, email_account: schemas.EmailAccount):
+        encrypted_password = encryptor.encrypt_password(email_account.password)
+        email_account.password = encrypted_password
+
         update_result = await self.collection.update_one(
             {'_id': ObjectId(game_id)},
             {'$set': {'emailAccount': email_account.model_dump()}}
@@ -232,18 +234,14 @@ class EmailAccountRepository:
             raise HTTPException(status_code=404, detail="Game not found or Email account not added")
 
     async def update_email_account(self, game_id: str, email_account: schemas.EmailAccountOut):
-        update_data = {f'emailAccount.{k}': v for k, v in email_account.model_dump(exclude_unset=True).items()}
-        if not update_data:
-            raise HTTPException(status_code=400, detail="No fields to update")
+        encrypted_password = encryptor.encrypt_password(email_account.password)
+        email_account.password = encrypted_password
 
-        update_result = await self.collection.update_one(
-            {'_id': ObjectId(game_id)},
-            {'$set': update_data}
-        )
-        if update_result.modified_count == 0:
-            raise HTTPException(status_code=404, detail="Game not found or Email account not updated")
+        update_data = {f'emailAccount.{k}': v for k, v in email_account.model_dump(exclude_unset=True).items()}
+        await self.collection.update_one({'_id': ObjectId(game_id)}, {'$set': update_data})
 
         updated_game = await self.collection.find_one({'_id': ObjectId(game_id)})
+
         return updated_game
 
     async def delete_email_account(self, game_id: str):
@@ -269,6 +267,9 @@ class PSNAccountRepository:
             raise HTTPException(status_code=404, detail="No data")
 
     async def add_psn_account(self, game_id: str, psn_account: schemas.PSNAccount):
+        encrypted_password = encryptor.encrypt_password(psn_account.password)
+        psn_account.password = encrypted_password
+
         update_result = await self.collection.update_one(
             {'_id': ObjectId(game_id)},
             {'$set': {'psnAccount': psn_account.model_dump()}}
@@ -279,14 +280,11 @@ class PSNAccountRepository:
         return updated_game
 
     async def update_psn_account(self, game_id: str, psn_account: schemas.PSNAccountOut):
-        update_data = {f'psnAccount.{k}': v for k, v in psn_account.model_dump(exclude_unset=True).items()}
-        if not update_data:
-            raise HTTPException(status_code=400, detail="No fields to update")
+        encrypted_password = encryptor.encrypt_password(psn_account.password)
+        psn_account.password = encrypted_password
 
-        await self.collection.update_one(
-            {'_id': ObjectId(game_id)},
-            {'$set': update_data}
-        )
+        update_data = {f'psnAccount.{k}': v for k, v in psn_account.model_dump(exclude_unset=True).items()}
+        await self.collection.update_one({'_id': ObjectId(game_id)}, {'$set': update_data})
 
         updated_game = await self.collection.find_one({'_id': ObjectId(game_id)})
         return updated_game

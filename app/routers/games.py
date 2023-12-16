@@ -3,6 +3,7 @@ from starlette.responses import JSONResponse
 
 from config import schemas
 from config.schemas import SaleStatusUpdate
+from infrastructure.crypto_utils import encryptor
 from services.game_service import GameService
 
 game_service = GameService()
@@ -19,7 +20,8 @@ router = APIRouter(
             )
 async def get_games(skip: int = 0, limit: int = 50):
     games = await game_service.get_games(skip, limit)
-    return games
+    decrypted_games = encryptor.decrypt_game_passwords_in_list(games)
+    return decrypted_games
 
 
 @router.get("/find_game",
@@ -29,7 +31,8 @@ async def get_games(skip: int = 0, limit: int = 50):
 async def find_game(gamename: str = Query(None)):
     games = await game_service.find_game(game_name=gamename)
     if games:
-        return games
+        decrypted_games = encryptor.decrypt_game_passwords_in_list(games)
+        return decrypted_games
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Game not found")
 
@@ -41,7 +44,8 @@ async def find_game(gamename: str = Query(None)):
 async def search_games(query: str = Query(None), skip: int = 0, limit: int = 50):
     games = await game_service.search_games(search_query=query, skip=skip, limit=limit)
     if games:
-        return games
+        decrypted_games = encryptor.decrypt_game_passwords_in_list(games)
+        return decrypted_games
     else:
         return []
 
@@ -52,14 +56,14 @@ async def search_games(query: str = Query(None), skip: int = 0, limit: int = 50)
              response_model=schemas.GameOut)
 async def add_game(game: schemas.Game):
     new_game = await game_service.add_game(game_data=game.model_dump())
-    return new_game
+    return encryptor.decrypt_game_passwords(new_game)
 
 
 @router.get("/{game_id}", response_model=schemas.GameOut)
 async def get_game_by_id(game_id: str):
     game = await game_service.find_game_by_id(game_id)
     if game:
-        return game
+        return encryptor.decrypt_game_passwords(game)
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Game not found")
 
@@ -76,7 +80,7 @@ async def update_game(game_id: str, game_update: schemas.GameUpdate):
     updated_game = await game_service.update_game(game_id, update_data)
     if not updated_game:
         raise HTTPException(status_code=404, detail="Game not found")
-    return updated_game
+    return encryptor.decrypt_game_passwords(updated_game)
 
 
 @router.put("/{game_id}/sale-status",
@@ -84,7 +88,7 @@ async def update_game(game_id: str, game_update: schemas.GameUpdate):
             response_model=schemas.GameOut)
 async def update_sale_status(game_id: str, sale_status_update: SaleStatusUpdate):
     game = await game_service.update_sale_status(game_id, sale_status_update.saleStatus)
-    return game
+    return encryptor.decrypt_game_passwords(game)
 
 
 @router.delete("/{game_id}",
