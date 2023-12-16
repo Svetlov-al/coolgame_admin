@@ -9,10 +9,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
 
     <style>
-
-
-
-
         .custom-container {
             margin: 0 auto;
             max-width: 100%; /* Можно настроить в соответствии с вашими предпочтениями */
@@ -135,25 +131,38 @@
             visibility: hidden;
 }
 
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 30%;
+        }
+
     </style>
 
 </head>
 <body>
 
-    <div id="loginModal" class="modal">
+    <div id="tokenModal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
-            <form id="loginForm">
-                <label>
-                    <input type="text" name="username" placeholder="Имя пользователя" required>
-                </label>
-                <label>
-                    <input type="password" name="password" placeholder="Пароль" required>
-                </label>
-                <input type="submit" value="Войти">
-            </form>
+            <p>Ваш токен истек. Пожалуйста, войдите снова.</p>
+            <button id="tokenModalOkBtn">OK</button>
         </div>
     </div>
+
     <!-- Модальное окно для кодов активации -->
     <div class="modal fade" id="activationCodesModal" tabindex="-1" aria-labelledby="activationCodesModalLabel" aria-hidden="true">
         <div class="modal-dialog custom-modal-dialog">
@@ -780,8 +789,9 @@
 
     async function checkToken() {
         const token = sessionStorage.getItem("accessToken");
+        const tokenModal = document.getElementById("tokenModal");
         if (!token) {
-            window.location.href = '/login';
+            tokenModal.style.display = "block";
             return;
         }
 
@@ -798,16 +808,22 @@
             }
         } catch (error) {
             console.error('Ошибка:', error);
-            sessionStorage.removeItem("accessToken"); // Удаляем недействительный токен
-            window.location.href = '/login';
+            sessionStorage.removeItem("accessToken");
+            tokenModal.style.display = "block";
         }
     }
 
+
     document.addEventListener('DOMContentLoaded',
         async function () {
-        await checkToken();
         await loadGames();
         createObserver();
+        await checkToken();
+        const tokenModalOkBtn = document.getElementById("tokenModalOkBtn");
+
+        tokenModalOkBtn.onclick = function() {
+            window.location.href = '/login';
+        };
 
     });
 
