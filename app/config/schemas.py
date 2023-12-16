@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 from bson import ObjectId
 from enum import Enum
 
@@ -156,3 +156,18 @@ class GameUpdate(BaseModel):
     lastDeactivationDate: Optional[str] = None
     comment: Optional[str] = None
     rentalInfo: Optional[RentalInfo] = None
+
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str

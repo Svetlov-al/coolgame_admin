@@ -132,6 +132,7 @@
 }
 
     </style>
+
 </head>
 <body>
     <!-- Модальное окно для кодов активации -->
@@ -757,9 +758,38 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
 
-    document.addEventListener('DOMContentLoaded', async function () {
-        await loadGames(); // Загрузка игр при инициализации страницы
+
+    async function checkToken() {
+        const token = sessionStorage.getItem("accessToken");
+        if (!token) {
+            window.location.href = '/login';
+            return;
+        }
+
+        try {
+            const response = await fetch('/verify-token', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Токен недействителен');
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            sessionStorage.removeItem("accessToken"); // Удаляем недействительный токен
+            window.location.href = '/login';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded',
+        async function () {
+        await checkToken();
+        await loadGames();
         createObserver();
+
     });
 
     // Функция для создания Intersection Observer
@@ -850,7 +880,12 @@
     async function loadGames(skip = 0, limit = 20) {
         if (endOfDataReached) return;
         try {
-            const response = await fetch(`/games/?skip=${skip}&limit=${limit}`);
+            const token = sessionStorage.getItem("accessToken");
+            const response = await fetch(`/games/?skip=${skip}&limit=${limit}`, {
+            headers: {
+                'Authorization': `Bearer ${token}` // Добавляем токен в заголовок
+            }
+            });
             if (!response.ok) {
                 throw new Error('Ошибка при получении списка игр');
             }
@@ -888,9 +923,13 @@
 
         let psnAccountContent;
         if (psnAccount.name) {
-            psnAccountContent = `<a href="#" class="btn btn-sm btn-warning" onclick="showPsnModal('${psnAccountId}')">${psnAccount.name}</a>`;
+            psnAccountContent = `
+                <a href="#" class="game-link" onclick="showPsnModal('${psnAccountId}')">${psnAccount.name}</a>
+                <button onclick="showUpdatePsnPasswordModal('${game._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-key"></i></button>
+                <button onclick="showAccessInfoModal('${game._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-info-circle"></i></button>
+            `;
         } else {
-            psnAccountContent = `<button class="btn btn-sm btn-warning" onclick="showPsnModal('${psnAccountId}')">Добавить PSN</button>`;
+            psnAccountContent = `<button class="btn btn-sm btn-outline-primary" onclick="showPsnModal('${psnAccountId}')">Добавить PSN</button>`;
         }
 
         // Формирование содержимого для Email аккаунта и сохранение данных в emailAccountsData
@@ -900,9 +939,9 @@
 
         let emailAccountContent;
         if (emailAccount.email) {
-            emailAccountContent = `<a href="#" class="btn btn-sm btn-secondary" onclick="showEmailModal('${emailAccountId}')">${emailAccount.email}</a>`;
+            emailAccountContent = `<a href="#" class="game-link" onclick="showEmailModal('${emailAccountId}')">${emailAccount.email}</a>`;
         } else {
-            emailAccountContent = `<button class="btn btn-sm btn-secondary" onclick="showEmailModal('${emailAccountId}')">Добавить Email</button>`;
+            emailAccountContent = `<button class="btn btn-sm btn-outline-primary" onclick="showEmailModal('${emailAccountId}')">Добавить Email</button>`;
         }
 
         // Формирование кнопок для кодов активации и информации об активациях
@@ -912,7 +951,7 @@
          // Формирование строки таблицы
         gameRow.innerHTML = `
             <td>${game.account_number}</td>
-            <td><a href="#" class="btn btn-sm btn-dark" onclick="editGame('${game._id}')">${game.gameName}</a></td>
+            <td><a href="#" class="game-link" onclick="editGame('${game._id}')">${game.gameName}</a></td>
             <td>
                 ${game.saleStatus}
                 <button class="btn btn-sm btn-outline-primary" onclick="showSaleStatusModal('${game._id}')">
@@ -922,8 +961,6 @@
             <td>${emailAccountContent}</td>
             <td>
                 ${psnAccountContent}
-                <button onclick="showUpdatePsnPasswordModal('${game._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-key"></i></button>
-                <button onclick="showAccessInfoModal('${game._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-info-circle"></i></button>
             </td>
             <td>${activationCodesButton}</td>
             <td>${activationInfoButton}</td>
@@ -1030,9 +1067,13 @@
 
         let psnAccountContent;
         if (psnAccount.name) {
-            psnAccountContent = `<a href="#" class="btn btn-sm btn-warning" onclick="showPsnModal('${psnAccountId}')">${psnAccount.name}</a>`;
+            psnAccountContent = `
+                <a href="#" class="game-link" onclick="showPsnModal('${psnAccountId}')">${psnAccount.name}</a>
+                <button onclick="showUpdatePsnPasswordModal('${game._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-key"></i></button>
+                <button onclick="showAccessInfoModal('${game._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-info-circle"></i></button>
+            `;
         } else {
-            psnAccountContent = `<button class="btn btn-sm btn-warning" onclick="showPsnModal('${psnAccountId}')">Добавить PSN</button>`;
+            psnAccountContent = `<button class="btn btn-sm btn-outline-primary" onclick="showPsnModal('${psnAccountId}')">Добавить PSN</button>`;
         }
 
         // Формирование содержимого для Email аккаунта и сохранение данных в emailAccountsData
@@ -1042,9 +1083,9 @@
 
         let emailAccountContent;
         if (emailAccount.email) {
-            emailAccountContent = `<a href="#" class="btn btn-sm btn-secondary" onclick="showEmailModal('${emailAccountId}')">${emailAccount.email}</a>`;
+            emailAccountContent = `<a href="#" class="game-link" onclick="showEmailModal('${emailAccountId}')">${emailAccount.email}</a>`;
         } else {
-            emailAccountContent = `<button class="btn btn-sm btn-secondary" onclick="showEmailModal('${emailAccountId}')">Добавить Email</button>`;
+            emailAccountContent = `<button class="btn btn-sm btn-outline-primary" onclick="showEmailModal('${emailAccountId}')">Добавить Email</button>`;
         }
 
         // Формирование кнопок для кодов активации и информации об активациях
@@ -1054,7 +1095,7 @@
          // Формирование строки таблицы
         gameRow.innerHTML = `
             <td>${game.account_number}</td>
-            <td><a href="#" class="btn btn-sm btn-dark" onclick="editGame('${game._id}')">${game.gameName}</a></td>
+            <td><a href="#" class="game-link" onclick="editGame('${game._id}')">${game.gameName}</a></td>
             <td>
                 ${game.saleStatus}
                 <button class="btn btn-sm btn-outline-primary" onclick="showSaleStatusModal('${game._id}')">
@@ -1064,8 +1105,6 @@
             <td>${emailAccountContent}</td>
             <td>
                 ${psnAccountContent}
-                <button onclick="showUpdatePsnPasswordModal('${game._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-key"></i></button>
-                <button onclick="showAccessInfoModal('${game._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-info-circle"></i></button>
             </td>
             <td>${activationCodesButton}</td>
             <td>${activationInfoButton}</td>
@@ -1170,7 +1209,12 @@
     if (input.length > 3) {
         isSearching = true;
         endOfDataReached = false;
-        fetch(`/games/search_games?query=${encodeURIComponent(input)}&skip=${skip}&limit=${limit}`)
+        const token = sessionStorage.getItem("accessToken");
+            fetch(`/games/search_games?query=${encodeURIComponent(input)}&skip=${skip}&limit=${limit}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}` // Добавляем токен в заголовок
+                }
+            })
             .then(response => {
                 if (!response.ok) {
                     if (response.status === 404) {
@@ -1212,7 +1256,7 @@
                 isSearching = false;
                 currentSkip = 0;
                 await loadGames();
-                // window.location.reload();
+                window.location.reload();
             } else if (inputValue.length >= 4 && inputValue !== previousSearch) {
                 previousSearch = inputValue;
                 isSearching = true;
@@ -1226,13 +1270,18 @@
     const searchGameName = document.getElementById('searchGameName').value;
 
     try {
-        const response = await fetch(`/games/search_games?query=${encodeURIComponent(searchGameName)}`);
+        const token = sessionStorage.getItem("accessToken");
+        const response = await fetch(`/games/search_games?query=${encodeURIComponent(searchGameName)}`, {
+                headers: {
+                'Authorization': `Bearer ${token}` // Добавляем токен в заголовок
+            }
+            });
         if (!response.ok) {
             throw new Error('Game not found');
         }
 
         const game = await response.json();
-        displayGames([game]); // Показать найденную игру
+        await displayGames([game]); // Показать найденную игру
     } catch (error) {
         console.error('Ошибка:', error);
         alert('Игра не найдена');
@@ -1280,10 +1329,12 @@
 
         try {
             // Отправка данных о новой игре
+            const token = sessionStorage.getItem("accessToken");
             const response = await fetch('/games/', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(gameData)
             });
@@ -1320,9 +1371,13 @@
 
         let psnAccountContent;
         if (psnAccount.name) {
-            psnAccountContent = `<a href="#" class="btn btn-sm btn-warning" onclick="showPsnModal('${psnAccountId}')">${psnAccount.name}</a>`;
+            psnAccountContent = `
+                <a href="#" class="game-link" onclick="showPsnModal('${psnAccountId}')">${psnAccount.name}</a>
+                <button onclick="showUpdatePsnPasswordModal('${game._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-key"></i></button>
+                <button onclick="showAccessInfoModal('${game._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-info-circle"></i></button>
+            `;
         } else {
-            psnAccountContent = `<button class="btn btn-sm btn-warning" onclick="showPsnModal('${psnAccountId}')">Добавить PSN</button>`;
+            psnAccountContent = `<button class="btn btn-sm btn-outline-primary" onclick="showPsnModal('${psnAccountId}')">Добавить PSN</button>`;
         }
 
         // Формирование содержимого для Email аккаунта
@@ -1344,7 +1399,7 @@
         // Формирование строки таблицы
         gameRow.innerHTML = `
             <td>${game.account_number}</td>
-            <td><a href="#" class="btn btn-sm btn-dark" onclick="editGame('${game._id}')">${game.gameName}</a></td>
+            <td><a href="#" class="game-link" onclick="editGame('${game._id}')">${game.gameName}</a></td>
             <td>
                 ${game.saleStatus}
                 <button class="btn btn-sm btn-outline-primary" onclick="showSaleStatusModal('${game._id}')">
@@ -1354,8 +1409,6 @@
             <td>${emailAccountContent}</td>
             <td>
                 ${psnAccountContent}
-                <button onclick="showUpdatePsnPasswordModal('${game._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-key"></i></button>
-                <button onclick="showAccessInfoModal('${game._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-info-circle"></i></button>
             </td>
             <td>${activationCodesButton}</td>
             <td>${activationInfoButton}</td>
@@ -1440,19 +1493,25 @@
 }
 
     async function deleteGame(gameId) {
-        try {
-            const response = await fetch(`/games/${gameId}`, { method: 'DELETE' });
-            if (!response.ok) {
-                throw new Error('Failed to delete the game');
+    try {
+        const token = sessionStorage.getItem("accessToken");
+        const response = await fetch(`/games/${gameId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}` // Добавляем токен в заголовок
             }
-            await loadGames(); // Перезагрузить список игр
-            removeGameFromDOM(gameId)
-            // Скрываем модальное окно после успешного удаления
-            confirmDeleteModal.hide();
-        } catch (error) {
-            console.error('Ошибка:', error);
-            alert('Ошибка удаления игры');
+        });
+        if (!response.ok) {
+            throw new Error('Failed to delete the game');
         }
+        await loadGames(); // Перезагрузить список игр
+        removeGameFromDOM(gameId);
+        // Скрываем модальное окно после успешного удаления
+        confirmDeleteModal.hide();
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert('Ошибка удаления игры');
+    }
 }
 
     function removeGameFromDOM(gameId) {
@@ -1549,9 +1608,13 @@
 
         try {
             // Отправка основных данных игры
+            const token = sessionStorage.getItem("accessToken");
             const gameResponse = await fetch(`/games/${gameId}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json' ,
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify(gameData)
             });
 
@@ -1567,7 +1630,10 @@
             if (saleStatusValue) {
                 const saleStatusResponse = await fetch(`/games/${gameId}/sale-status`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: JSON.stringify({ saleStatus: saleStatusValue })
                 });
 
@@ -1612,14 +1678,14 @@
 
             // Обновление email аккаунта
             const emailAccountContent = updatedGame.emailAccount && updatedGame.emailAccount.email ?
-                `<a href="#" class="btn btn-sm btn-secondary" onclick="showEmailModal('email-${updatedGame._id}')">${updatedGame.emailAccount.email}</a>` :
-                `<button class="btn btn-sm btn-secondary" onclick="showEmailModal('email-${updatedGame._id}')">Добавить Email</button>`;
+                `<a href="#" class="game-link" onclick="showEmailModal('email-${updatedGame._id}')">${updatedGame.emailAccount.email}</a>` :
+                `<button class="btn btn-sm btn-outline-primary" onclick="showEmailModal('email-${updatedGame._id}')">Добавить Email</button>`;
             gameRow.cells[3].innerHTML = emailAccountContent;
 
             // Обновление PSN аккаунта и кнопок
             const psnAccountContent = updatedGame.psnAccount && updatedGame.psnAccount.name ?
-                `<a href="#" class="btn btn-sm btn-warning" onclick="showPsnModal('psn-${updatedGame._id}')">${updatedGame.psnAccount.name}</a>` :
-                `<button class="btn btn-sm btn-warning" onclick="showPsnModal('psn-${updatedGame._id}')">Добавить PSN</button>`;
+                `<a href="#" class="game-link" onclick="showPsnModal('psn-${updatedGame._id}')">${updatedGame.psnAccount.name}</a>` :
+                `<button class="btn btn-sm btn-outline-primary" onclick="showPsnModal('psn-${updatedGame._id}')">Добавить PSN</button>`;
             gameRow.cells[4].innerHTML = `${psnAccountContent}
                 <button onclick="showUpdatePsnPasswordModal('${updatedGame._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-key"></i></button>
                 <button onclick="showAccessInfoModal('${updatedGame._id}')" class="btn btn-sm btn-outline-primary"><i class="fas fa-info-circle"></i></button>`;
@@ -1685,9 +1751,13 @@
 
             try {
                 // Отправка нового статуса на сервер
+                const token = sessionStorage.getItem("accessToken");
                 const response = await fetch(`/games/${gameId}/sale-status`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: JSON.stringify({ saleStatus: saleStatusValue })
                 });
 
@@ -1753,7 +1823,12 @@
 }
 
     function fetchUpdatedActivationCodes(gameId, reopen) {
-        fetch(`/games/${gameId}`)
+        const token = sessionStorage.getItem("accessToken");
+        fetch(`/games/${gameId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}` // Добавляем токен в заголовок
+            }
+        })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Ошибка при получении кодов: ' + response.status);
@@ -1811,6 +1886,7 @@
     function updateCodes(gameId) {
         var newCodes = document.getElementById('newActivationCodes').value;
         gameId = document.getElementById('updateGameIdField').value;
+        const token = sessionStorage.getItem("accessToken");
         var data = {
             codes: newCodes.split('\n')
         };
@@ -1819,7 +1895,8 @@
         fetch(`/codes/${gameId}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(data)
         })
@@ -1848,10 +1925,12 @@
     });}
 
     function deleteCode(gameId, code, codeIndex, reopen=true) {
+        const token = sessionStorage.getItem("accessToken");
         fetch(`/codes/${gameId}/${codeIndex}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             }
         })
         .then(response => {
@@ -1906,6 +1985,7 @@
          event.preventDefault(); // Предотвращение стандартной отправки формы
         // Получение gameId из скрытого поля
         const gameIdValue = document.getElementById('gameIdFieldPsn').value;
+        const token = sessionStorage.getItem("accessToken");
           // Сбор данных из формы
           const updatedPsnAccount = {
             name: document.getElementById('psnName').value,
@@ -1925,6 +2005,7 @@
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(updatedPsnAccount)
         });
@@ -1971,7 +2052,7 @@
         event.preventDefault(); // Предотвратить стандартную отправку формы
 
         const gameIdValue = document.getElementById('gameIdFieldEmail').value;
-
+        const token = sessionStorage.getItem("accessToken");
         const emailData = {
             email: document.getElementById('emailAddress').value,
             password: document.getElementById('emailPassword').value,
@@ -1982,7 +2063,8 @@
         fetch(`/emailaccount/${gameIdValue}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(emailData)
         })
@@ -2072,6 +2154,7 @@
         // Получаем значения из формы
         const gameId = document.getElementById('gameIdFieldForActivation').value;
         const activationType = document.getElementById('activationTypeField').value;
+        const token = sessionStorage.getItem("accessToken");
         const clientInfo = {
             name: document.getElementById('addActivationName').value,
             email: document.getElementById('addActivationEmail').value,
@@ -2084,22 +2167,62 @@
             const response = await fetch(`/activation/${gameId}?activation_type=${activationType}`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(clientInfo)
             });
 
             if (response.ok) {
                 console.log('Client added successfully');
-                $('#addActivationModal').modal('hide'); // Закрываем модальное окно
-                // window.location.reload(); // Обновляем страницу
+                // Обновляем глобальный объект
+                const game = gamesData[gameId];
+                const activationInfo = game.activationInfo[activationType] || [];
+                activationInfo.push(clientInfo);
+                game.activationInfo[activationType] = activationInfo;
+
+                updateActivationInfoModal(gameId)
+                // Закрываем модальное окно
+                $('#addActivationModal').modal('hide');
             } else {
                 console.error('Ошибка при добавлении активации:', response.statusText);
             }
         } catch (error) {
             console.error('Ошибка при отправке запроса:', error);
         }
-}
+    }
+
+    function updateActivationInfoModal(gameId) {
+        const game = gamesData[gameId];
+        let activationInfoHtml = '';
+
+        // Проверяем, есть ли информация об активации
+        if (game.activationInfo && Object.keys(game.activationInfo).length > 0) {
+            for (const key in game.activationInfo) {
+                const title = activationTitles[key] || key;
+                activationInfoHtml += `<h5>${title}</h5><div class="activation-info">`;
+                game.activationInfo[key].forEach((info, index) => {
+                    activationInfoHtml += `
+                        <div class="activation-record">
+                            <span>Name: ${info.name || 'N/A'}</span><br>
+                            <span>Email: ${info.email || 'N/A'}</span><br>
+                            <span>VK: ${info.vkLink || 'N/A'}</span><br>
+                            <span>Telegram: ${info.tgLink || 'N/A'}</span>
+                            <button class="btn btn-sm" onclick="editActivation('${game._id}', '${key}', ${index})">&#x270F;</button>
+                            <button class="btn btn-sm" onclick="showConfirmDeleteActivationModal('${game._id}', '${key}', ${index})">&#x1F5D1;</button>
+                        </div>`;
+                });
+                activationInfoHtml += `</div>`;
+                // Добавляем кнопку "Добавить еще одну активацию" после каждой активации
+                activationInfoHtml += `<button class="btn btn-sm btn-primary" onclick="showAddActivationModal('${key}', '${game._id}')">Добавить активацию</button><hr>`;
+            }
+        } else {
+            activationInfoHtml = 'Информация об активации отсутствует';
+        }
+
+        // Обновляем DOM модального окна
+        document.getElementById('activationInfoContainer').innerHTML = activationInfoHtml;
+    }
 
     function editActivation(gameId, activationKey, index) {
         const game = gamesData[gameId];
@@ -2129,6 +2252,7 @@
         const gameId = document.getElementById('gameIdFieldActivationEdit').value;
         const activationType = document.getElementById('activationTypeFieldEdit').value;
         const clientIndex = document.getElementById('clientIndexFieldEdit').value;
+        const token = sessionStorage.getItem("accessToken");
         const clientInfo = {
             name: document.getElementById('editActivationName').value,
             email: document.getElementById('editActivationEmail').value,
@@ -2140,27 +2264,36 @@
         fetch(`/activation/${gameId}/${activationType}/${clientIndex}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(clientInfo)
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Ошибка сервера: ' + response.statusText);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Success:', data);
-            // Закрыть модальное окно после успешного обновления
-            $('#editActivationModal').modal('hide');
-            // Можно обновить страницу или обновить отображаемые данные
-            // window.location.reload(); // или другой способ обновления данных на странице
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-}
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка сервера: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Success:', data);
+
+                // Обновляем глобальный объект
+                const game = gamesData[gameId];
+                const activationInfo = game.activationInfo[activationType];
+                activationInfo[clientIndex] = clientInfo;
+                game.activationInfo[activationType] = activationInfo;
+
+                // Закрыть модальное окно после успешного обновления
+                $('#editActivationModal').modal('hide');
+
+                // Обновляем DOM модального окна
+                updateActivationInfoModal(gameId);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
 
     let deleteActivationData = {}; // Глобальная переменная для хранения данных об активации
 
@@ -2177,8 +2310,12 @@
     }
 
     function deleteActivation(gameId, activationType, clientIndex) {
+        const token = sessionStorage.getItem("accessToken");
         fetch(`/activation/${gameId}/${activationType}/${clientIndex}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}` // Добавляем токен в заголовок
+            }
         })
         .then(response => {
             if (!response.ok) {
@@ -2188,9 +2325,18 @@
         })
         .then(data => {
             console.log('Success:', data);
+
+            // Обновляем глобальный объект
+            const game = gamesData[gameId];
+            const activationInfo = game.activationInfo[activationType];
+            activationInfo.splice(clientIndex, 1);
+            game.activationInfo[activationType] = activationInfo;
+
             // Закрыть модальное окно подтверждения
             $('#confirmDeleteActivationModal').modal('hide');
-            // window.location.reload(); // Обновить страницу
+
+            // Обновляем DOM модального окна
+            updateActivationInfoModal(gameId);
         })
         .catch(error => {
             console.error('Error:', error);
@@ -2221,26 +2367,56 @@
 }
 
     document.getElementById('confirmRentalData').addEventListener('click', function() {
-    rentalPrice = document.getElementById('rentalPrice').value;
-    rentalDate = document.getElementById('rentalDate').value;
+        rentalPrice = document.getElementById('rentalPrice').value;
+        rentalDate = document.getElementById('rentalDate').value;
 
-    // Закрыть модальное окно данных аренды
-    $('#rentalDataModal').modal('hide');
-});
+        // Закрыть модальное окно данных аренды
+        $('#rentalDataModal').modal('hide');
+
+        // Обновить данные об аренде в глобальном объекте
+        updateRentalData(rentalPrice, rentalDate);
+    });
 
     document.getElementById('editRentalDataButton').addEventListener('click', function() {
         const gameId = document.getElementById('editGameIdField').value;
         const game = gamesData[gameId];
         fillRentalDataModal(game);
 
-    // Показать модальное окно с данными аренды
-    new bootstrap.Modal(document.getElementById('rentalDataModal')).show();
-});
+        // Показать модальное окно с данными аренды
+        new bootstrap.Modal(document.getElementById('rentalDataModal')).show();
+    });
 
     function fillRentalDataModal(game) {
         document.getElementById('rentalPrice').value = game.rentalInfo.rentalPrice || '';
         document.getElementById('rentalDate').value = game.rentalInfo.rentalDate || '';
-}
+    }
+
+    function updateRentalData(rentalPrice, rentalDate) {
+        const gameId = document.getElementById('editGameIdField').value;
+        const game = gamesData[gameId];
+        const token = sessionStorage.getItem("accessToken");
+
+        game.rentalInfo.rentalPrice = rentalPrice;
+        game.rentalInfo.rentalDate = rentalDate;
+
+        // Отправить запрос на обновление данных об аренде
+        fetch(`/games/${gameId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(game),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка при обновлении данных об аренде: ' + response.status);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
 
     function showAccessInfoModal(gameId) {
         const game = gamesData[gameId];
@@ -2277,6 +2453,7 @@
 
         const gameId = document.getElementById('gameIdFieldPsnPassword').value;
         const newPassword = document.getElementById('psnPasswordUpdate').value;
+        const token = sessionStorage.getItem("accessToken");
 
         // Создание объекта с данными для обновления
         const updatedPasswordData = {
@@ -2288,6 +2465,7 @@
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(updatedPasswordData)
             });
@@ -2337,10 +2515,14 @@
     function submitComment(div, button) {
         const gameId = div.getAttribute('data-game-id');
         const newComment = div.textContent || '';
+        const token = sessionStorage.getItem("accessToken");
 
         fetch(`/games/${gameId}`, {
             method: 'PUT',
-            headers: {'Content-Type': 'application/json'},
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({comment: newComment})
         })
         .then(response => {

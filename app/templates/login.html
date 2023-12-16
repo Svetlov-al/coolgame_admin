@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        .error-message {
+            color: red;
+            margin: 10px 0;
+            display: none; /* Сначала скрыт */
+        }
+
+    </style>
+    <script>
+        // Функция для обработки входа в систему
+        async function handleLogin(event) {
+          event.preventDefault();
+          const errorMessageElement = document.getElementById('error-message');
+          errorMessageElement.style.display = 'none'; // Скрыть сообщение об ошибке
+
+          const formData = new FormData(event.target);
+          const response = await fetch('/token', {
+            method: 'POST',
+            body: formData
+          });
+          if (response.ok) {
+            const data = await response.json();
+            sessionStorage.setItem("accessToken", data.access_token);
+            location.assign('/admin');
+          } else {
+            errorMessageElement.textContent = 'Не верный логин или пароль';
+            errorMessageElement.style.display = 'block'; // Показать сообщение об ошибке
+          }
+        }
+    </script>
+</head>
+<body>
+    <div class="login-container">
+        <div id="error-message" class="error-message"></div>
+        <form onsubmit="handleLogin(event)">
+            <label>
+                <input type="text" name="username" placeholder="Имя пользователя" required>
+            </label>
+            <label>
+                <input type="password" name="password" placeholder="Пароль" required>
+            </label>
+            <input type="submit" value="Войти">
+        </form>
+    </div>
+</body>
+</html>

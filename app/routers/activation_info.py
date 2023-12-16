@@ -1,10 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
-from starlette.responses import JSONResponse
+from fastapi import APIRouter, HTTPException, Query, status
 
 from config import schemas
 from config.schemas import ClientInfo, ClientUpdate
 from services.activation_service import ActivationService
-
 
 router = APIRouter(
     prefix='/activation',
@@ -21,10 +19,9 @@ async def get_activation_info(game_id: str):
     return await activation_service.get_activation_info(game_id)
 
 
-@router.post("/{game_id}")
+@router.post("/{game_id}", status_code=200, response_model=schemas.GameOut)
 async def add_client_to_activation(game_id: str, client_info: ClientInfo, activation_type: str = Query(...)):
-    await activation_service.add_client_to_activation(game_id, client_info.model_dump(), activation_type)
-    return {"message": "Client added successfully"}
+    return await activation_service.add_client_to_activation(game_id, client_info.model_dump(), activation_type)
 
 
 @router.put("/{game_id}/{activation_type}/{client_index}")

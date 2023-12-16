@@ -154,6 +154,10 @@ class ActivationRepository:
         """Добавление клиента к определенному типу активации"""
         update_query = {'$push': {f'activationInfo.{activation_type}': client_info}}
         await self.collection.update_one({'_id': ObjectId(game_id)}, update_query)
+        updated_game = await self.collection.find_one({'_id': ObjectId(game_id)})
+        if updated_game:
+            return updated_game
+        raise HTTPException(status_code=404, detail="Game not found")
 
     async def update_client_info(self, game_id: str, activation_type: str, client_index: int, client_update: dict):
         # Формирование запроса обновления только для указанных полей

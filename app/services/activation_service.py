@@ -16,7 +16,7 @@ class ActivationService:
     @staticmethod
     async def add_client_to_activation(game_id: str, client_info: dict, activation_type: str):
         """Сервис для добавления клиента к активации"""
-        await activation_repository.add_client_to_activation(game_id, client_info, activation_type)
+        return await activation_repository.add_client_to_activation(game_id, client_info, activation_type)
 
     @staticmethod
     async def update_client_info(game_id: str, activation_type: str, client_index: int, client_update: ClientUpdate):
