@@ -61,9 +61,7 @@ class GameService:
         updated_game = copy.deepcopy(existing_game)
         updated_game.saleStatus = sale_status
 
-        await game_repository.update_sale_status(game_id, sale_status)
-
-        return updated_game
+        return await game_repository.update_sale_status(game_id, sale_status)
 
     @staticmethod
     async def delete_game(game_id: ObjectId):

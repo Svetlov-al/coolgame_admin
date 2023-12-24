@@ -52,17 +52,36 @@ class PasswordCipher:
         # Простая проверка, что строка соответствует формату Base64
         return re.match(r'^[A-Za-z0-9+/=]+\Z', password) is not None
 
-
     def decrypt_game_passwords(self, game_data):
+        # Функция для получения значения по ключу, в зависимости от типа game_data
+        def get_value(data, key):
+            if isinstance(data, dict):
+                return data.get(key)
+            else:
+                return getattr(data, key, None)
+
+        # Функция для установки значения по ключу, в зависимости от типа game_data
+        def set_value(data, key, value):
+            if isinstance(data, dict):
+                data[key] = value
+            else:
+                setattr(data, key, value)
+
         # Расшифровка пароля email аккаунта
-        if game_data.get('emailAccount') and game_data['emailAccount'].get('password'):
-            decrypted_email_password = encryptor.decrypt_password(game_data['emailAccount']['password'])
-            game_data['emailAccount']['password'] = decrypted_email_password
+        email_account = get_value(game_data, 'emailAccount')
+        if email_account:
+            email_password = get_value(email_account, 'password')
+            if email_password:
+                decrypted_email_password = encryptor.decrypt_password(email_password)
+                set_value(email_account, 'password', decrypted_email_password)
 
         # Расшифровка пароля PSN аккаунта
-        if game_data.get('psnAccount') and game_data['psnAccount'].get('password'):
-            decrypted_psn_password = encryptor.decrypt_password(game_data['psnAccount']['password'])
-            game_data['psnAccount']['password'] = decrypted_psn_password
+        psn_account = get_value(game_data, 'psnAccount')
+        if psn_account:
+            psn_password = get_value(psn_account, 'password')
+            if psn_password:
+                decrypted_psn_password = encryptor.decrypt_password(psn_password)
+                set_value(psn_account, 'password', decrypted_psn_password)
 
         return game_data
 
@@ -74,5 +93,6 @@ class PasswordCipher:
             decrypted_game = GameOut(**decrypted_game_dict)  # Создание объекта Pydantic из словаря
             decrypted_games.append(decrypted_game)
         return decrypted_games
+
 
 encryptor = PasswordCipher(settings.encryption_key)
