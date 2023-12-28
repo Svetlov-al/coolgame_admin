@@ -41,7 +41,7 @@ templates = Jinja2Templates(directory="app/templates")
 
 origins = ['*']
 
-app.add_middleware(AuthTokenMiddleware)
+# app.add_middleware(AuthTokenMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,

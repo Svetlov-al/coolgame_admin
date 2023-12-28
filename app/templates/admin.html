@@ -1245,6 +1245,12 @@
                 } else {
                     searchSkip += searchLimit
                 }
+
+                // Обновление глобального объекта gamesData
+                data.forEach(game => {
+                    gamesData[game._id] = game; // Добавление или обновление данных игры
+                });
+
                 displaySearchResults(data, skip === 0); // Вызов с флагом clearList
             })
             .catch(error => {
@@ -1287,21 +1293,28 @@
     try {
         const token = sessionStorage.getItem("accessToken");
         const response = await fetch(`/games/search_games?query=${encodeURIComponent(searchGameName)}`, {
-                headers: {
+            headers: {
                 'Authorization': `Bearer ${token}` // Добавляем токен в заголовок
             }
-            });
+        });
         if (!response.ok) {
             throw new Error('Game not found');
         }
 
         const game = await response.json();
+
+        // Обновление глобального объекта gamesData
+        if (game && game._id) { // Убедитесь, что игра найдена и имеет идентификатор
+            gamesData[game._id] = game; // Добавление или обновление данных игры
+        }
+
         await displayGames([game]); // Показать найденную игру
     } catch (error) {
         console.error('Ошибка:', error);
         alert('Игра не найдена');
     }
 }
+
 
     function addGameForm() {
         new bootstrap.Modal(document.getElementById('addGameModal')).show();
@@ -2116,7 +2129,6 @@
     function showActivationInfoModal(gameId) {
     const game = gamesData[gameId];
     let activationInfoHtml = '';
-
     // Проверяем, есть ли информация об активации
     if (game.activationInfo && Object.keys(game.activationInfo).length > 0) {
         for (const key in game.activationInfo) {

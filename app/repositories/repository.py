@@ -71,14 +71,19 @@ class GameRepository:
         query = {'_id': ObjectId(game_id)}
         update_fields = {f"{key}": value for key, value in game_data.items() if value is not None}
 
+        # Если нет полей для обновления, возвращаем исходный объект
         if not update_fields:
-            return []
+            updated_game = await self.collection.find_one(query)
+            return updated_game
 
         result = await self.collection.update_one(query, {'$set': update_fields})
 
+        # Если не найдено соответствий для обновления, возвращаем исходный объект
         if result.matched_count == 0:
-            return []
+            updated_game = await self.collection.find_one(query)
+            return updated_game
 
+        # Возвращаем обновленный объект
         updated_game = await self.collection.find_one(query)
         return updated_game
 

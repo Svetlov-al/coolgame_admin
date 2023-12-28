@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException, Query, Response, status
-from starlette.responses import JSONResponse
 
 from config import schemas
 from config.schemas import SaleStatusUpdate
@@ -34,7 +33,7 @@ async def find_game(gamename: str = Query(None)):
         decrypted_games = encryptor.decrypt_game_passwords_in_list(games)
         return decrypted_games
     else:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Game not found")
+        return []
 
 
 @router.get("/search_games",
@@ -73,6 +72,7 @@ async def get_game_by_id(game_id: str):
             description="Обновление игры по идентификатору",
             response_model=schemas.GameOut)
 async def update_game(game_id: str, game_update: schemas.GameUpdate):
+    print(game_id)
     update_data = game_update.model_dump(exclude_unset=True)
     if not update_data:
         raise HTTPException(status_code=400, detail="No fields to update")
